@@ -1,0 +1,6 @@
+dependencies {
+    implementation("com.github.GTNewHorizons:Forgelin:1.9.2-GTNH-1.7.10-Edition")
+    implementation("com.github.GTNewHorizons:NotEnoughItems:2.2.17-GTNH:dev")
+    implementation("com.github.GTNewHorizons:CodeChickenLib:1.1.5.3:dev")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
+}

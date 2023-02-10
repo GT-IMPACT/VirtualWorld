@@ -1,0 +1,13 @@
+item.virtual_ore_scanner.name=Underground Scanner
+
+scanner.change_layer=Set ore layer #
+scanner.change_mode.0=Set mod: §aUnderground Ores
+scanner.change_mode.1=Set mod: §aUnderground Fluids
+
+scanner.tooltip.0=Change scanner mode: Shift + Right Click
+scanner.tooltip.1=Current scanner mode:
+scanner.tooltip.2=§aUnderground Ores
+scanner.tooltip.3=Change ore layer scanner: Ctrl + Mouse Scroll
+scanner.tooltip.4=§aUnderground Fluids
+scanner.tooltip.5=To scan the area use Right Click
+scanner.tooltip.6=Current ore layer: §a#

@@ -1,0 +1,13 @@
+item.virtual_ore_scanner.name=Подземный сканнер
+
+scanner.change_layer=Выбран рудный слой #
+scanner.change_mode.0=Выбран режим: §aПодземные Руды
+scanner.change_mode.1=Выбран режим: §aПодземные Жидкости
+
+scanner.tooltip.0=Изменить режим сканнера: Shift + Right Click
+scanner.tooltip.1=Текущий режим сканнера:
+scanner.tooltip.2=§aПодземные руды
+scanner.tooltip.3=Изменить рудный слой: Ctrl + Mouse Scroll
+scanner.tooltip.4=§aПодземные жидкости
+scanner.tooltip.5=Сканировать территорию: Right Click
+scanner.tooltip.6=Текущий рудный слой: §a#
