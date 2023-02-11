@@ -198,7 +198,7 @@ class ScannerTool : Item() {
             region.getVein(chunk)?.let { veinFluid ->
                 VirtualAPI.getVirtualFluidVeinById(veinFluid.fluidId).also { vein ->
                     val size = veinFluid.size.toDouble() / vein.rangeSize.last.toDouble() * 100.0
-                    fillPacketForChunk(chunk, packet, vein.id, size.toInt())
+                    fillPacketForChunk(chunk, packet, vein.id, size.toInt() / 1000)
                 }
             }
         }
@@ -212,7 +212,7 @@ class ScannerTool : Item() {
             region.getVeinAndChunk(chunk, layer)?.let { (veinOre, chunkOre) ->
                 VirtualAPI.getVirtualOreVeinInChunk(veinOre, layer, region.dim)?.also { ore ->
                     val size = chunkOre.size.toDouble() / ore.rangeSize.last.toDouble() * 100.0
-                    fillPacketForChunk(chunk, packet, ore.id, size.toInt())
+                    fillPacketForChunk(chunk, packet, ore.id, size.toInt() / 1000)
                 }
             }
         }

@@ -44,7 +44,7 @@ object FluidGenerator {
      * @param vein virtual fluid
      */
     private fun VeinFluid.setSize(vein: VirtualFluidVein) {
-        size = Random.nextInt(vein.rangeSize)
+        size = Random.nextInt(vein.rangeSize) * 1000
     }
 
     /**
