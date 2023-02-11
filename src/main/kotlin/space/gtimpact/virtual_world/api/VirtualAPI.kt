@@ -141,7 +141,7 @@ object VirtualAPI {
     @[JvmStatic JvmOverloads]
     fun extractFromChunk(chunk: Chunk, layer: Int, reduceCoefficient: Int = 1): Pair<VirtualOreVein?, Int> {
         return chunk.getVeinAndChunk(layer)?.let { (veinOre, chunkOre) ->
-            getVirtualOreVeinById(veinOre.oreId) to if (!chunkOre.hasExtract(reduceCoefficient)) 0 else reduceCoefficient
+            getVirtualOreVeinById(veinOre.oreId) to if (!chunkOre.hasExtract(reduceCoefficient)) 0 else chunkOre.size
         } ?: (null to 0)
     }
 
