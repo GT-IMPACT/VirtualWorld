@@ -100,7 +100,7 @@ class ScannerTool : Item() {
 
     @SideOnly(Side.CLIENT)
     override fun registerIcons(reg: IIconRegister) {
-        icon = reg.registerIcon("${space.gtimpact.virtual_world.ASSETS}:ore_scanner")
+        icon = reg.registerIcon("$ASSETS:ore_scanner")
     }
 
     @SideOnly(Side.CLIENT)

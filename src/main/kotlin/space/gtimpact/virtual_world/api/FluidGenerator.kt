@@ -53,14 +53,15 @@ object FluidGenerator {
      * @param vein virtual fluid
      */
     private fun VeinFluid.generate(vein: VirtualFluidVein) {
-        setSize(vein)
         for (x in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
             for (z in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
-                oreChunks += ChunkFluid(
+                ChunkFluid(
                     x = (xVein shl SHIFT_CHUNK_FROM_VEIN) + x,
                     z = (zVein shl SHIFT_CHUNK_FROM_VEIN) + z,
-                )
-
+                ).apply {
+                    setSize(vein)
+                    oreChunks += this
+                }
             }
         }
     }

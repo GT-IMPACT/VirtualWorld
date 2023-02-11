@@ -2,7 +2,6 @@ package space.gtimpact.virtual_world.api
 
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.DimensionManager
-import space.gtimpact.virtual_world.VirtualOres.random
 import space.gtimpact.virtual_world.api.FluidGenerator.createFluidRegion
 import space.gtimpact.virtual_world.api.FluidGenerator.getFluidVein
 import space.gtimpact.virtual_world.api.OreGenerator.createOreRegion
@@ -19,6 +18,8 @@ import java.util.*
  * Virtual Ore API
  */
 object VirtualAPI {
+
+    var random: Random? = null
 
     /**
      * Set of types Virtual Ores
@@ -84,7 +85,7 @@ object VirtualAPI {
             total += candidate.maxWeight
             candidate.weight = total
         }
-        val medium = random.nextDouble() * total
+        val medium = (random?.nextDouble() ?: 0.0) * total
 
         RESIZE_ORE_VEINS[dim]!![layer]!!.forEach { candidate ->
             if (candidate.weight > medium) {
@@ -203,7 +204,7 @@ object VirtualAPI {
             total += candidate.maxWeight
             candidate.weight = total
         }
-        val medium = random.nextDouble() * total
+        val medium = (random?.nextDouble() ?: 0.0) * total
         RESIZE_FLUID_VEINS[dim]!!.forEach { candidate ->
             if (candidate.weight > medium) {
                 candidate.reduceWeight()

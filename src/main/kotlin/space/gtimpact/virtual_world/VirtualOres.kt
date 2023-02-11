@@ -29,11 +29,6 @@ object VirtualOres {
     @SidedProxy(clientSide = "$GROUPNAME.proxy.ClientProxy", serverSide = "$GROUPNAME.proxy.CommonProxy")
     lateinit var proxy: CommonProxy
 
-    /**
-     * Do not use before the start of the server
-     */
-    val random = Random()
-
     @JvmStatic
     @Mod.InstanceFactory
     fun instance() = VirtualOres

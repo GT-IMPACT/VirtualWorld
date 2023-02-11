@@ -8,6 +8,7 @@ import space.gtimpact.virtual_world.api.ores.ChunkOre
 import space.gtimpact.virtual_world.api.ores.RegionOre
 import space.gtimpact.virtual_world.api.ores.VeinOre
 import java.util.*
+import kotlin.random.Random
 import kotlin.random.nextInt
 
 /**
@@ -53,7 +54,7 @@ object OreGenerator {
      * @param ore virtual ore
      */
     private fun ChunkOre.setSize(ore: VirtualOreVein) {
-        size = kotlin.random.Random.nextInt(ore.rangeSize)
+        size = Random.nextInt(ore.rangeSize)
     }
 
     /**
