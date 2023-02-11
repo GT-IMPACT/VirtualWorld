@@ -54,7 +54,7 @@ object OreGenerator {
      * @param ore virtual ore
      */
     private fun ChunkOre.setSize(ore: VirtualOreVein) {
-        size = Random.nextInt(ore.rangeSize)
+        size = Random.nextInt(ore.rangeSize.first * 1000, ore.rangeSize.last * 1000)
     }
 
     /**
