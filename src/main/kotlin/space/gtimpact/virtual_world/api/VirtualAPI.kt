@@ -145,6 +145,19 @@ object VirtualAPI {
         } ?: (null to 0)
     }
 
+    @[JvmStatic JvmOverloads]
+    fun extractFromVein(chunk: Chunk, layer: Int, reduceCoefficient: Int = 1): Pair<VirtualOreVein?, Int> {
+        return chunk.getVeinAndChunk(layer)?.let { (veinOre, _) ->
+            val vov = getVirtualOreVeinById(veinOre.oreId)
+            var reduce = 0
+            veinOre.oreChunks.forEach { chunkOre ->
+                chunkOre.hasExtract(reduceCoefficient)
+                reduce += chunkOre.size
+            }
+            vov to reduce
+        } ?: (null to 0)
+    }
+
 
     /**
      * Get virtual vein from chunk
