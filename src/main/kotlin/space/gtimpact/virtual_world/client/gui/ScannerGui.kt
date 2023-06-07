@@ -3,10 +3,10 @@ package space.gtimpact.virtual_world.client.gui
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11
-import space.gtimpact.virtual_world.ASSETS
 import space.gtimpact.virtual_world.client.gui.widgets.RenderMapTexture
 import space.gtimpact.virtual_world.client.gui.widgets.VeinsGuiScrollingList
 import space.gtimpact.virtual_world.network.BlockCoordinates
+import space.impact.impact_vw.ASSETS
 import java.awt.Color
 import kotlin.math.max
 import kotlin.math.min
@@ -17,7 +17,7 @@ class ScannerGui : GuiScreen() {
         const val GUI_ID = 1
         const val MIN_HEIGHT = 128
         const val MIN_WIDTH = 128
-        val BG = ResourceLocation(space.gtimpact.virtual_world.ASSETS, "textures/gui/bg.png")
+        val BG = ResourceLocation(ASSETS, "textures/gui/bg.png")
         var map: RenderMapTexture? = null
 
         fun create(newMap: RenderMapTexture) {

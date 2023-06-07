@@ -18,7 +18,6 @@ import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.client.event.MouseEvent
 import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.input.Keyboard
-import space.gtimpact.virtual_world.ASSETS
 import space.gtimpact.virtual_world.api.FluidGenerator.getVein
 import space.gtimpact.virtual_world.api.OreGenerator.getVeinAndChunk
 import space.gtimpact.virtual_world.api.VirtualAPI
@@ -30,6 +29,7 @@ import space.gtimpact.virtual_world.extras.toTranslate
 import space.gtimpact.virtual_world.network.ChangeLayerScannerPacket
 import space.gtimpact.virtual_world.network.FindVeinsPacket
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
+import space.impact.impact_vw.ASSETS
 
 class ScannerTool : Item() {
 

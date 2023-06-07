@@ -3,18 +3,10 @@ package space.gtimpact.virtual_world
 import cpw.mods.fml.common.Mod
 import cpw.mods.fml.common.SidedProxy
 import cpw.mods.fml.common.event.*
-import net.minecraft.init.Items
-import net.minecraft.item.ItemStack
-import net.minecraftforge.fluids.FluidRegistry
-import net.minecraftforge.fluids.FluidStack
-import space.gtimpact.virtual_world.api.VirtualFluidVein
-import space.gtimpact.virtual_world.api.VirtualOreComponent
-import space.gtimpact.virtual_world.api.VirtualOreVein
 import space.gtimpact.virtual_world.client.GuiHandler
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
 import space.gtimpact.virtual_world.proxy.CommonProxy
-import java.awt.Color
-import java.util.*
+import space.impact.impact_vw.*
 
 @Mod(
     modid = MODID,
