@@ -1,0 +1,5 @@
+dependencies {
+    api("com.github.GTNewHorizons:Forgelin:1.9.2-GTNH-1.7.10-Edition")
+    runtimeOnly("com.github.GTNewHorizons:NotEnoughItems:2.3.+:dev")
+//    api("space.impact:packet_network:1.1.+:dev") { transitive = false }
+}
