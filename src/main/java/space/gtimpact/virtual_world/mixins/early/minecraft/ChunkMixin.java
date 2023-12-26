@@ -1,0 +1,84 @@
+package space.gtimpact.virtual_world.mixins.early.minecraft;
+
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import org.jetbrains.annotations.NotNull;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import space.gtimpact.virtual_world.common.world.IModifiableChunk;
+import space.gtimpact.virtual_world.common.world.IWorldNbt;
+
+@Mixin(Chunk.class)
+public abstract class ChunkMixin implements IModifiableChunk {
+
+    @Shadow(remap = false)
+    public World worldObj;
+
+    @Shadow(remap = false)
+    public abstract ChunkCoordIntPair getChunkCoordIntPair();
+
+    @Unique
+    private static String NBT_KEY = "VWChunkNBT";
+    @Unique
+    private static String NBT_KEY_CUSTOM = "VWChunkNBT_Custom";
+
+    @Unique
+    private NBTTagCompound virtualWorld$chunkNbt = null;
+
+    @Override
+    public void writeToNBT(@NotNull NBTTagCompound nbt) {
+        if (virtualWorld$chunkNbt != null)
+            nbt.setTag(NBT_KEY, virtualWorld$chunkNbt);
+
+        System.out.println("writeToNBT chunk");
+    }
+
+    @Override
+    public void readFromNBT(@NotNull NBTTagCompound nbt) {
+        virtualWorld$chunkNbt = nbt.getCompoundTag(NBT_KEY);
+
+        if (virtualWorld$chunkNbt == null)
+            virtualWorld$chunkNbt = new NBTTagCompound();
+
+        System.out.println("readFromNBT chunk");
+    }
+
+    @Override
+    public NBTTagCompound getNbt() {
+
+        if (virtualWorld$chunkNbt == null)
+            virtualWorld$chunkNbt = new NBTTagCompound();
+
+        NBTTagCompound tag = virtualWorld$chunkNbt.getCompoundTag(NBT_KEY_CUSTOM);
+        if (tag != null)
+            return tag;
+        else
+            return new NBTTagCompound();
+    }
+
+    @Override
+    public void setNbt(@NotNull NBTTagCompound nbt) {
+        if (virtualWorld$chunkNbt == null)
+            virtualWorld$chunkNbt = new NBTTagCompound();
+
+        virtualWorld$chunkNbt.setTag(NBT_KEY_CUSTOM, nbt);
+
+        if (worldObj instanceof IWorldNbt) {
+            ((IWorldNbt) worldObj).addChunk(this);
+        }
+    }
+
+    @Override
+    public boolean isModified() {
+        return virtualWorld$chunkNbt != null;
+    }
+
+    @NotNull
+    @Override
+    public ChunkCoordIntPair getCoords() {
+        return getChunkCoordIntPair();
+    }
+}

@@ -36,6 +36,13 @@ fun DependencyHandler.projectImplementation(depName: String) {
     add("implementation", (project(mapOf("path" to depName))))
 }
 
+fun DependencyHandler.annotationProcessor(dependencyNotation: Any): Dependency? =
+    add("annotationProcessor", dependencyNotation)
+
+fun DependencyHandler.kapt(dependencyNotation: Any): Dependency? =
+    add("kapt", dependencyNotation)
+
+
 val Project.libs: LibrariesForLibs
     get() = the<LibrariesForLibs>()
 

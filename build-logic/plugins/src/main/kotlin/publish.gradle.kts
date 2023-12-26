@@ -16,6 +16,7 @@ plugins {
 val modId: String by extra
 val modName: String by extra
 val modGroup: String by extra
+val modFile: String? by extra
 val versionDetails: Closure<VersionDetails> by extra
 val gitDetails = versionDetails()
 group = modGroup
@@ -37,7 +38,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-archivesName.set(modId)
+archivesName.set(modFile ?: modId)
 
 tasks.withType<GenerateModuleMetadata> {
     enabled = false
@@ -51,11 +52,8 @@ configure<PublishingExtension> {
             pom.withXml {
                 removeRuntimeDependencies(asNode())
             }
-            val devJar by tasks.registering(Jar::class) {
-                from(sourceSets["main"].output)
-                archiveClassifier.set("dev")
-            }
-            artifact(devJar.get())
+
+            artifact(tasks["devJar"])
             groupId = "space.impact"
             artifactId = modId
             version = identifiedVersion

@@ -2,8 +2,6 @@ package space.gtimpact.virtual_world
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import net.minecraftforge.common.DimensionManager
 import space.gtimpact.virtual_world.api.TypeFluidVein
 import space.gtimpact.virtual_world.api.VirtualAPI
@@ -55,10 +53,10 @@ object JsonManager {
     }
 
     fun save() {
-        runBlocking(Dispatchers.IO) {
-            saveOres()
-            saveFluids()
-        }
+//        runBlocking(Dispatchers.IO) {
+//            saveOres()
+//            saveFluids()
+//        }
 
         clearData()
         WORLD_DIRECTORY = null
@@ -68,10 +66,10 @@ object JsonManager {
         initData()
         clearData()
 
-        runBlocking {
-            loadOres()
-            loadFluids()
-        }
+//        runBlocking {
+//            loadOres()
+//            loadFluids()
+//        }
     }
 
     private fun loadOres() {
