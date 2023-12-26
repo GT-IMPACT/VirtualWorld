@@ -22,6 +22,7 @@ import space.gtimpact.virtual_world.api.FluidGenerator.getVein
 import space.gtimpact.virtual_world.api.OreGenerator.getVeinAndChunk
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualAPI.LAYERS_VIRTUAL_ORES
+import space.gtimpact.virtual_world.common.world.IModifiableChunk
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_FLUIDS
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_ORES
 import space.gtimpact.virtual_world.extras.send
@@ -30,6 +31,7 @@ import space.gtimpact.virtual_world.network.ChangeLayerScannerPacket
 import space.gtimpact.virtual_world.network.FindVeinsPacket
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
 import space.impact.impact_vw.ASSETS
+import kotlin.random.Random
 
 class ScannerTool : Item() {
 
@@ -148,44 +150,60 @@ class ScannerTool : Item() {
             var type = stack.getNBTInt(NBT_TYPE)
             val layer = if (type == TYPE_ORES) stack.getNBTInt(NBT_LAYER) else 0
 
-            if (player.isSneaking) {
-                type++
-
-                if (type >= TYPES_COUNT) {
-                    type = 0
-                }
-
-                when (type) {
-                    TYPE_ORES -> player.send("scanner.change_mode.0".toTranslate()) //Set mod: Underground Ores
-                    TYPE_FLUIDS -> player.send("scanner.change_mode.1".toTranslate()) //Set mod: Underground Ores
-                }
-                stack.setNBT(type, NBT_TYPE)
-                return super.onItemRightClick(stack, world, player)
-            }
+//            if (player.isSneaking) {
+//                type++
+//
+//                if (type >= TYPES_COUNT) {
+//                    type = 0
+//                }
+//
+//                when (type) {
+//                    TYPE_ORES -> player.send("scanner.change_mode.0".toTranslate()) //Set mod: Underground Ores
+//                    TYPE_FLUIDS -> player.send("scanner.change_mode.1".toTranslate()) //Set mod: Underground Ores
+//                }
+//                stack.setNBT(type, NBT_TYPE)
+//                return super.onItemRightClick(stack, world, player)
+//            }
 
             val radius = 11
 
             val chX = player.posX.toInt() shr 4
             val chZ = player.posZ.toInt() shr 4
 
-            val chunks: ArrayList<Chunk> = ArrayList()
+            val chunkss = world.getChunkFromChunkCoords(chX, chZ)
 
-            for (x in -radius..radius) {
-                for (z in -radius..radius) {
-                    if (x != -radius && x != radius && z != -radius && z != radius) {
-                        chunks += world.getChunkFromChunkCoords(chX + x, chZ + z)
-                    }
+            if (chunkss is IModifiableChunk) {
+
+                if (player.isSneaking) {
+                    val nbt = NBTTagCompound()
+                    val random = Random.nextInt(1, 8999)
+                    nbt.setInteger("test", random)
+                    chunkss.setNbt(nbt)
+                    player.send("set test: $random")
+                } else {
+                    val test = chunkss.getNbt()?.getInteger("test")
+                    player.send("test: $test")
                 }
             }
-            val packet = FindVeinsPacket(chX, chZ, player.posX.toInt(), player.posZ.toInt(), radius - 1, type)
-            for (chunk in chunks) {
-                when (type) {
-                    TYPE_ORES -> scanOres(chunk, packet, layer)
-                    TYPE_FLUIDS -> scanFluids(chunk, packet)
-                }
-            }
-            packet.level = radius - 1
-            VirtualOresNetwork.sendToPlayer(packet, player as EntityPlayerMP)
+//
+//            val chunks: ArrayList<Chunk> = ArrayList()
+//
+//            for (x in -radius..radius) {
+//                for (z in -radius..radius) {
+//                    if (x != -radius && x != radius && z != -radius && z != radius) {
+//                        chunks += world.getChunkFromChunkCoords(chX + x, chZ + z)
+//                    }
+//                }
+//            }
+//            val packet = FindVeinsPacket(chX, chZ, player.posX.toInt(), player.posZ.toInt(), radius - 1, type)
+//            for (chunk in chunks) {
+//                when (type) {
+//                    TYPE_ORES -> scanOres(chunk, packet, layer)
+//                    TYPE_FLUIDS -> scanFluids(chunk, packet)
+//                }
+//            }
+//            packet.level = radius - 1
+//            VirtualOresNetwork.sendToPlayer(packet, player as EntityPlayerMP)
         }
         return super.onItemRightClick(stack, world, player)
     }
@@ -208,6 +226,9 @@ class ScannerTool : Item() {
      * Scanning Virtual Ores
      */
     private fun scanOres(chunk: Chunk, packet: FindVeinsPacket, layer: Int) {
+
+
+
         VirtualAPI.generateOreRegion(chunk).also { region ->
             region.getVeinAndChunk(chunk, layer)?.let { (veinOre, chunkOre) ->
                 VirtualAPI.getVirtualOreVeinInChunk(veinOre, layer, region.dim)?.also { ore ->
