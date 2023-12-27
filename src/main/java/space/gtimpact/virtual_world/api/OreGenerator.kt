@@ -4,14 +4,11 @@ import net.minecraft.world.chunk.Chunk
 import space.gtimpact.virtual_world.api.VirtualAPI.GENERATED_REGIONS_VIRTUAL_ORES
 import space.gtimpact.virtual_world.api.VirtualAPI.LAYERS_VIRTUAL_ORES
 import space.gtimpact.virtual_world.api.VirtualAPI.getRandomVirtualOre
-import space.gtimpact.virtual_world.api.new.*
 import space.gtimpact.virtual_world.api.ores.ChunkOre
 import space.gtimpact.virtual_world.api.ores.RegionOre
 import space.gtimpact.virtual_world.api.ores.VeinOre
-import space.gtimpact.virtual_world.common.world.IModifiableChunk
 import java.util.*
 import kotlin.random.Random
-import kotlin.random.nextInt
 
 /**
  * Singleton Virtual Ore Generator

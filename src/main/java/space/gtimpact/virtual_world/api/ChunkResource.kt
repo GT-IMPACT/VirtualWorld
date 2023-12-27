@@ -1,22 +1,20 @@
-package space.gtimpact.virtual_world.api.new
+package space.gtimpact.virtual_world.api
 
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.chunk.Chunk
 import space.gtimpact.virtual_world.api.OreGenerator.generateRegion
 import space.gtimpact.virtual_world.api.VirtualAPI.VIRTUAL_ORES
 import space.gtimpact.virtual_world.api.VirtualAPI.getVirtualOreVeinById
-import space.gtimpact.virtual_world.api.VirtualFluidVein
-import space.gtimpact.virtual_world.api.VirtualOreVein
 import space.gtimpact.virtual_world.common.world.IModifiableChunk
 import space.gtimpact.virtual_world.extras.NBT
 
-class OreVeinCount(
+data class OreVeinCount(
     val type: VirtualOreVein,
     val size: Int,
 )
 
-//TODO 
-class FluidVeinCount(
+//TODO
+data class FluidVeinCount(
     val type: VirtualFluidVein,
     val size: Int,
 )

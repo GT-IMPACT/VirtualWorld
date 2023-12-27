@@ -3,13 +3,8 @@ package space.gtimpact.virtual_world.api
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.DimensionManager
 import space.gtimpact.virtual_world.api.FluidGenerator.createFluidRegion
-import space.gtimpact.virtual_world.api.FluidGenerator.getFluidVein
-import space.gtimpact.virtual_world.api.OreGenerator.createOreRegion
-import space.gtimpact.virtual_world.api.OreGenerator.getVeinAndChunk
 import space.gtimpact.virtual_world.api.fluids.RegionFluid
-import space.gtimpact.virtual_world.api.new.*
 import space.gtimpact.virtual_world.api.ores.RegionOre
-import space.gtimpact.virtual_world.api.ores.VeinOre
 import space.gtimpact.virtual_world.config.Config
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_FLUIDS
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_ORES

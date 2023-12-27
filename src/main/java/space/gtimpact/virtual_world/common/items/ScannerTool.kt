@@ -21,8 +21,8 @@ import org.lwjgl.input.Keyboard
 import space.gtimpact.virtual_world.api.FluidGenerator.getVein
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualAPI.LAYERS_VIRTUAL_ORES
-import space.gtimpact.virtual_world.api.new.getOreLayer0
-import space.gtimpact.virtual_world.api.new.getOreLayer1
+import space.gtimpact.virtual_world.api.getOreLayer0
+import space.gtimpact.virtual_world.api.getOreLayer1
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_SCANNER_TOOL
 import space.gtimpact.virtual_world.extras.send
 import space.gtimpact.virtual_world.extras.toTranslate
