@@ -34,6 +34,7 @@ open class CommonProxy {
         event.server?.worldServers
             ?.find { it?.provider?.dimensionId == 0 }
             ?.also { VirtualAPI.random = Random(it.seed) }
+        VirtualAPI.resizeOreVeins()
     }
 
     open fun serverStarted(event: FMLServerStartedEvent) {

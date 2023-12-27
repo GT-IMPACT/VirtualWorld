@@ -4,9 +4,11 @@ import net.minecraft.world.chunk.Chunk
 import space.gtimpact.virtual_world.api.VirtualAPI.GENERATED_REGIONS_VIRTUAL_ORES
 import space.gtimpact.virtual_world.api.VirtualAPI.LAYERS_VIRTUAL_ORES
 import space.gtimpact.virtual_world.api.VirtualAPI.getRandomVirtualOre
+import space.gtimpact.virtual_world.api.new.*
 import space.gtimpact.virtual_world.api.ores.ChunkOre
 import space.gtimpact.virtual_world.api.ores.RegionOre
 import space.gtimpact.virtual_world.api.ores.VeinOre
+import space.gtimpact.virtual_world.common.world.IModifiableChunk
 import java.util.*
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -22,9 +24,41 @@ object OreGenerator {
     private const val CHUNK_COUNT_IN_VEIN_COORDINATE = 4
     private const val VEIN_COUNT_IN_REGIN_COORDINATE = 8
 
+    fun Chunk.generateRegion() {
+
+        val reg = RegionOre(
+            xRegion = xPosition shr SHIFT_REGION_FROM_CHUNK,
+            zRegion = zPosition shr SHIFT_REGION_FROM_CHUNK,
+            dim = worldObj.provider.dimensionId
+        )
+
+        reg.generate()
+
+        reg.veins.forEach { (layer, veins) ->
+            veins.forEach { vein ->
+                vein.oreChunks.forEach { chunk ->
+                    val ch = worldObj.getChunkFromChunkCoords(chunk.x, chunk.z)
+                    ch.saveOreLayer(
+                        veinId = vein.oreId,
+                        size = chunk.size,
+                        layer = layer
+                    )
+                }
+            }
+        }
+    }
+
+    private fun Chunk.saveOreLayer(layer: Int, veinId: Int, size: Int) {
+        when (layer) {
+            0 -> saveOreLayer0(veinId, size)
+            1 -> saveOreLayer1(veinId, size)
+        }
+    }
+
     /**
      * Generate Region Ore by Minecraft Chunk
      */
+    @Deprecated(message = "Old method, uses Chunk.generateRegion()", level = DeprecationLevel.WARNING)
     fun Chunk.createOreRegion(): RegionOre {
         val dim = worldObj.provider.dimensionId
         RegionOre(
@@ -105,6 +139,7 @@ object OreGenerator {
      *
      * @param layer layer
      */
+    @Deprecated(message = "deleted", level = DeprecationLevel.WARNING)
     fun Chunk.getVeinAndChunk(layer: Int): Pair<VeinOre, ChunkOre>? {
         return createOreRegion().getVeinAndChunk(this, layer)
     }
@@ -115,6 +150,7 @@ object OreGenerator {
      * @param chunk current chunk
      * @param layer layer
      */
+    @Deprecated(message = "deleted", level = DeprecationLevel.WARNING)
     fun RegionOre.getVeinAndChunk(chunk: Chunk, layer: Int): Pair<VeinOre, ChunkOre>? {
         veins[layer]?.forEach { veinOre ->
             veinOre.oreChunks.forEach { chunkOre ->

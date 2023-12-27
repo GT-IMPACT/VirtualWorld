@@ -47,24 +47,28 @@ public abstract class ChunkMixin implements IModifiableChunk {
     }
 
     @Override
-    public NBTTagCompound getNbt() {
+    public NBTTagCompound getNbt(@NotNull String name) {
 
         if (virtualWorld$chunkNbt == null)
             virtualWorld$chunkNbt = new NBTTagCompound();
 
-        NBTTagCompound tag = virtualWorld$chunkNbt.getCompoundTag(NBT_KEY_CUSTOM);
-        if (tag != null)
-            return tag;
-        else
-            return new NBTTagCompound();
+        NBTTagCompound srcTag = virtualWorld$chunkNbt.getCompoundTag(NBT_KEY_CUSTOM);
+        if (srcTag == null) return null;
+
+        return srcTag.hasKey(name) ? srcTag.getCompoundTag(name) : null;
     }
 
     @Override
-    public void setNbt(@NotNull NBTTagCompound nbt) {
+    public void setNbt(@NotNull NBTTagCompound nbt, @NotNull String name) {
+
         if (virtualWorld$chunkNbt == null)
             virtualWorld$chunkNbt = new NBTTagCompound();
 
-        virtualWorld$chunkNbt.setTag(NBT_KEY_CUSTOM, nbt);
+        NBTTagCompound srcTag = virtualWorld$chunkNbt.getCompoundTag(NBT_KEY_CUSTOM);
+
+        srcTag.setTag(name, nbt);
+
+        virtualWorld$chunkNbt.setTag(NBT_KEY_CUSTOM, srcTag);
 
         if (worldObj instanceof IWorldNbt) {
             ((IWorldNbt) worldObj).addChunk(this);

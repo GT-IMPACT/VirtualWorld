@@ -13,6 +13,7 @@ object Config {
     var MAX_SIZE_REGISTERED_VIRTUAL_FLUIDS = 200
     var IS_DISABLED_VIRTUAL_ORES = false
     var IS_DISABLED_VIRTUAL_FLUIDS = false
+    var IS_DISABLED_SCANNER_TOOL = false
 
     private inline fun onPostCreate(configFile: File?, crossinline action: (Configuration) -> Unit) {
         Configuration(configFile).let { config ->
@@ -54,6 +55,12 @@ object Config {
                 GENERAL,
                 IS_DISABLED_VIRTUAL_FLUIDS,
                 "Disabled Virtual Fluids"
+            )
+            IS_DISABLED_SCANNER_TOOL = cfg.getBoolean(
+                "isDisabledScannerTool",
+                GENERAL,
+                IS_DISABLED_SCANNER_TOOL,
+                "Disabled Scanner Tool"
             )
         }
     }

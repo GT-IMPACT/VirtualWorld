@@ -24,31 +24,31 @@ object VirtualAPI {
     /**
      * Set of types Virtual Ores
      */
-    @JvmStatic
+    @JvmField
     val VIRTUAL_ORES: HashSet<VirtualOreVein> = HashSet(Config.MAX_SIZE_REGISTERED_VIRTUAL_ORES)
 
     /**
      * Set of types Virtual Fluids
      */
-    @JvmStatic
+    @JvmField
     val VIRTUAL_FLUIDS: HashSet<VirtualFluidVein> = HashSet(Config.MAX_SIZE_REGISTERED_VIRTUAL_ORES)
 
     /**
      * Current generated Virtual Ores
      */
-    @JvmStatic
+    @JvmField
     val GENERATED_REGIONS_VIRTUAL_ORES: HashMap<Int, HashMap<Int, RegionOre>> = HashMap()
 
     /**
      * Current generated Virtual Fluids
      */
-    @JvmStatic
+    @JvmField
     val GENERATED_REGIONS_VIRTUAL_FLUIDS: HashMap<Int, HashMap<Int, RegionFluid>> = HashMap()
 
     /**
      * Max layers of Virtual ores
      */
-    @JvmStatic
+    @JvmField
     val LAYERS_VIRTUAL_ORES = 2
 
 
@@ -57,15 +57,14 @@ object VirtualAPI {
      * First Int = dim
      * Second Int = layer
      */
-    @JvmStatic
+    @JvmField
     var RESIZE_ORE_VEINS: HashMap<Int, Map<Int, List<VirtualOreVein>>> = HashMap()
-
 
     /**
      * Resized Fluid veins
      * Int = dim
      */
-    @JvmStatic
+    @JvmField
     var RESIZE_FLUID_VEINS: HashMap<Int, List<VirtualFluidVein>> = HashMap()
 
     //region Ores
@@ -123,64 +122,13 @@ object VirtualAPI {
     }
 
     /**
-     * Generate Virtual Ore by Minecraft Chunk
-     *
-     * @param chunk minecraft chunk
-     */
-    @JvmStatic
-    fun generateOreRegion(chunk: Chunk): RegionOre {
-        return chunk.createOreRegion()
-    }
-
-    /**
-     * Extract component from chunk
-     *
-     * @param chunk current chunk
-     * @param layer layer
-     */
-    @[JvmStatic JvmOverloads]
-    fun extractFromChunk(chunk: Chunk, layer: Int, reduceCoefficient: Int = 1): Pair<VirtualOreVein?, Int> {
-        return chunk.getVeinAndChunk(layer)?.let { (veinOre, chunkOre) ->
-            getVirtualOreVeinById(veinOre.oreId) to if (!chunkOre.hasExtract(reduceCoefficient)) 0 else chunkOre.size
-        } ?: (null to 0)
-    }
-
-    @[JvmStatic JvmOverloads]
-    fun extractFromVein(chunk: Chunk, layer: Int, reduceCoefficient: Int = 1): Pair<VirtualOreVein?, Int> {
-        return chunk.getVeinAndChunk(layer)?.let { (veinOre, _) ->
-            val vov = getVirtualOreVeinById(veinOre.oreId)
-            var reduce = 0
-            veinOre.oreChunks.forEach { chunkOre ->
-                chunkOre.hasExtract(reduceCoefficient)
-                reduce += chunkOre.size
-            }
-            vov to reduce
-        } ?: (null to 0)
-    }
-
-
-    /**
-     * Get virtual vein from chunk
-     *
-     * @param vein generated ore vein
-     * @param layer layer
-     * @param dim dimension world
-     */
-    @JvmStatic
-    fun getVirtualOreVeinInChunk(vein: VeinOre, layer: Int, dim: Int): VirtualOreVein? {
-        return VIRTUAL_ORES.filter { it.layer == layer && it.dimensions.contains(dim) }.let { veins ->
-            veins.find { it.id == vein.oreId }
-        }
-    }
-
-    /**
      * Get virtual vein by id
      *
      * @param oreId ID virtual vein
      */
     @JvmStatic
-    fun getVirtualOreVeinById(oreId: Int): VirtualOreVein {
-        return VIRTUAL_ORES.first { it.id == oreId }
+    fun getVirtualOreVeinById(oreId: Int): VirtualOreVein? {
+        return VIRTUAL_ORES.find { it.id == oreId }
     }
 
     /**
@@ -266,19 +214,6 @@ object VirtualAPI {
     fun generateFluidRegion(chunk: Chunk): RegionFluid {
         return chunk.createFluidRegion()
     }
-
-    /**
-     * Extract component from chunk
-     *
-     * @param chunk current chunk
-     */
-    @[JvmStatic JvmOverloads]
-    fun extractFluidFromChunk(chunk: Chunk, reduceCoefficient: Int = 1): Pair<VirtualFluidVein?, Int> {
-        return chunk.getFluidVein()?.let {
-            getVirtualFluidVeinById(it.fluidId) to if (!it.hasExtract(reduceCoefficient)) 0 else reduceCoefficient
-        } ?: (null to 0)
-    }
-
 
     /**
      * Get registered Virtual Fluids

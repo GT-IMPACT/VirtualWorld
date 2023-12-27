@@ -16,7 +16,7 @@ interface IModifiableChunk : IChunkNbt {
         val modifiedChunks = HashMap<Int, ChunkCoordIntPair>()
     }
 
-    fun getNbt(): NBTTagCompound?
-    fun setNbt(nbt: NBTTagCompound)
+    fun getNbt(name: String): NBTTagCompound?
+    fun setNbt(nbt: NBTTagCompound, name: String)
     fun isModified(): Boolean
 }
