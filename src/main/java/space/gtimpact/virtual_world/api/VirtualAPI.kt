@@ -7,6 +7,7 @@ import space.gtimpact.virtual_world.api.FluidGenerator.getFluidVein
 import space.gtimpact.virtual_world.api.OreGenerator.createOreRegion
 import space.gtimpact.virtual_world.api.OreGenerator.getVeinAndChunk
 import space.gtimpact.virtual_world.api.fluids.RegionFluid
+import space.gtimpact.virtual_world.api.new.*
 import space.gtimpact.virtual_world.api.ores.RegionOre
 import space.gtimpact.virtual_world.api.ores.VeinOre
 import space.gtimpact.virtual_world.config.Config
@@ -137,6 +138,20 @@ object VirtualAPI {
     @JvmStatic
     fun getRegisterOres(): List<VirtualOreVein> {
         return VIRTUAL_ORES.toList()
+    }
+
+    @JvmStatic
+    fun getOreInfoChunk(ch: Chunk, layer: Int): OreVeinCount? {
+        return when(layer) {
+            0 -> ch.getOreLayer0()
+            1 -> ch.getOreLayer1()
+            else -> null
+        }
+    }
+
+    @JvmStatic
+    fun extractOreFromChunk(ch: Chunk, layer: Int, amount: Int): OreVeinCount? {
+        return ch.extractOreFromChunk(layer, amount)
     }
 
     /**
