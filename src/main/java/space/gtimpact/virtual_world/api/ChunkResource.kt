@@ -1,10 +1,13 @@
 package space.gtimpact.virtual_world.api
 
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.world.ChunkCoordIntPair
 import net.minecraft.world.chunk.Chunk
 import space.gtimpact.virtual_world.api.OreGenerator.generateRegion
+import space.gtimpact.virtual_world.api.OreGenerator.getVeinChunks
 import space.gtimpact.virtual_world.api.VirtualAPI.VIRTUAL_ORES
 import space.gtimpact.virtual_world.api.VirtualAPI.getVirtualOreVeinById
+import space.gtimpact.virtual_world.api.ores.RegionOre
 import space.gtimpact.virtual_world.common.world.IModifiableChunk
 import space.gtimpact.virtual_world.extras.NBT
 
@@ -100,6 +103,44 @@ fun Chunk.extractOreFromChunk(layer: Int, amount: Int): OreVeinCount? {
 
         else -> return null
     }
+}
+
+fun Chunk.getVeinChunks(): List<ChunkCoordIntPair> {
+    return RegionOre(
+        xPosition shr OreGenerator.SHIFT_REGION_FROM_CHUNK,
+        zPosition shr OreGenerator.SHIFT_REGION_FROM_CHUNK,
+        0,
+    ).getVeinChunks(xPosition, zPosition)
+}
+
+fun Chunk.extractOreFormVein(layer: Int, amount: Int): OreVeinCount? {
+
+    val chunks = getVeinChunks()
+
+    val veins = chunks.mapNotNull { ch ->
+        val chunk = worldObj.getChunkFromChunkCoords(ch.chunkXPos, ch.chunkZPos)
+        when (layer) {
+            0 -> chunk.getOreLayer0()
+            1 -> chunk.getOreLayer1()
+            else -> null
+        }
+    }
+
+    val veinCount = veins.firstOrNull()?.let { vein ->
+        OreVeinCount(
+            type = vein.type,
+            size = veins.sumOf { it.size } - veins.size * amount
+        )
+    }
+
+    if (veinCount != null) {
+        chunks.forEach { ch ->
+            val chunk = worldObj.getChunkFromChunkCoords(ch.chunkXPos, ch.chunkZPos)
+            chunk.extractOreFromChunk(layer, amount)
+        }
+    }
+
+    return veinCount
 }
 
 fun Chunk.virtualState(): VirtualGeneratorState = when {

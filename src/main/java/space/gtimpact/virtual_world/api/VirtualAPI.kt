@@ -1,5 +1,6 @@
 package space.gtimpact.virtual_world.api
 
+import net.minecraft.world.ChunkCoordIntPair
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.DimensionManager
 import space.gtimpact.virtual_world.api.FluidGenerator.createFluidRegion
@@ -13,6 +14,7 @@ import java.util.*
 /**
  * Virtual Ore API
  */
+@Suppress("unused")
 object VirtualAPI {
 
     var random: Random? = null
@@ -46,7 +48,6 @@ object VirtualAPI {
      */
     @JvmField
     val LAYERS_VIRTUAL_ORES = 2
-
 
     /**
      * Resized Ore Veins
@@ -135,6 +136,9 @@ object VirtualAPI {
         return VIRTUAL_ORES.toList()
     }
 
+    /**
+     * Get current chunk ore info
+     */
     @JvmStatic
     fun getOreInfoChunk(ch: Chunk, layer: Int): OreVeinCount? {
         return when(layer) {
@@ -144,9 +148,28 @@ object VirtualAPI {
         }
     }
 
+    /**
+     * Extract from current Chunk
+     */
     @JvmStatic
     fun extractOreFromChunk(ch: Chunk, layer: Int, amount: Int): OreVeinCount? {
         return ch.extractOreFromChunk(layer, amount)
+    }
+
+    /**
+     * Extract from current Vein chunks
+     */
+    @JvmStatic
+    fun extractOreFromVein(ch: Chunk, layer: Int, amount: Int): OreVeinCount? {
+        return ch.extractOreFormVein(layer, amount)
+    }
+
+    /**
+     * Get current Vein chunks
+     */
+    @JvmStatic
+    fun getVeinChunks(ch: Chunk): List<ChunkCoordIntPair> {
+        return ch.getVeinChunks()
     }
 
     /**

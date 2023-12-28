@@ -1,5 +1,6 @@
 package space.gtimpact.virtual_world.api
 
+import net.minecraft.world.ChunkCoordIntPair
 import net.minecraft.world.chunk.Chunk
 import space.gtimpact.virtual_world.api.VirtualAPI.GENERATED_REGIONS_VIRTUAL_ORES
 import space.gtimpact.virtual_world.api.VirtualAPI.LAYERS_VIRTUAL_ORES
@@ -15,11 +16,11 @@ import kotlin.random.Random
  */
 object OreGenerator {
 
-    private const val SHIFT_REGION_FROM_CHUNK = 5
-    private const val SHIFT_VEIN_FROM_REGION = 3
-    private const val SHIFT_CHUNK_FROM_VEIN = 2
-    private const val CHUNK_COUNT_IN_VEIN_COORDINATE = 4
-    private const val VEIN_COUNT_IN_REGIN_COORDINATE = 8
+    internal const val SHIFT_REGION_FROM_CHUNK = 5
+    internal const val SHIFT_VEIN_FROM_REGION = 3
+    internal const val SHIFT_CHUNK_FROM_VEIN = 2
+    internal const val CHUNK_COUNT_IN_VEIN_COORDINATE = 4
+    internal const val VEIN_COUNT_IN_REGIN_COORDINATE = 8
 
     fun Chunk.generateRegion() {
 
@@ -107,55 +108,95 @@ object OreGenerator {
         }
     }
 
-    /**
-     * Generate Ore Region with all layers
-     */
-    private fun RegionOre.generate() {
-        for (layer in 0 until LAYERS_VIRTUAL_ORES) {
-            val rawVeins = ArrayList<VeinOre>()
-            for (xx in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
-                for (zz in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
-                    getRandomVirtualOre(layer, dim)?.also { ore ->
-                        VeinOre(
-                            xVein = (xRegion shl SHIFT_VEIN_FROM_REGION) + xx,
-                            zVein = (zRegion shl SHIFT_VEIN_FROM_REGION) + zz,
-                            oreId = ore.id,
-                        ).also { vein ->
-                            vein.generate(ore)
-                            rawVeins += vein
+    fun RegionOre.getVeinChunks(chunkX: Int, chunkZ: Int): List<ChunkCoordIntPair> {
+        val list = mutableListOf<ChunkCoordIntPair>()
+
+        var vein: VeinOre? = null
+
+        loop@ for (xxx in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
+            for (zzz in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
+
+                val veinOre = VeinOre(
+                    xVein = (xRegion shl SHIFT_VEIN_FROM_REGION) + xxx,
+                    zVein = (zRegion shl SHIFT_VEIN_FROM_REGION) + zzz,
+                    oreId = -1,
+                )
+
+                for (xx in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
+                    for (zz in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
+
+                        val chunk = ChunkOre(
+                            x = (veinOre.xVein shl SHIFT_CHUNK_FROM_VEIN) + xx,
+                            z = (veinOre.zVein shl SHIFT_CHUNK_FROM_VEIN) + zz,
+                        )
+
+                        veinOre.oreChunks += chunk
+
+                        if (chunk.x == chunkX && chunk.z == chunkZ) {
+                            vein = veinOre
+                            break@loop
                         }
                     }
                 }
             }
-            this.veins[layer] = rawVeins
         }
-    }
 
-    /**
-     * Get Vein and Chunk Ore
-     *
-     * @param layer layer
-     */
-    @Deprecated(message = "deleted", level = DeprecationLevel.WARNING)
-    fun Chunk.getVeinAndChunk(layer: Int): Pair<VeinOre, ChunkOre>? {
-        return createOreRegion().getVeinAndChunk(this, layer)
-    }
+        if (vein != null) {
+            list += vein.oreChunks.map { ChunkCoordIntPair(it.x, it.z) }
+        }
 
-    /**
-     * Get Vein and Chunk Ore
-     *
-     * @param chunk current chunk
-     * @param layer layer
-     */
-    @Deprecated(message = "deleted", level = DeprecationLevel.WARNING)
-    fun RegionOre.getVeinAndChunk(chunk: Chunk, layer: Int): Pair<VeinOre, ChunkOre>? {
-        veins[layer]?.forEach { veinOre ->
-            veinOre.oreChunks.forEach { chunkOre ->
-                if (chunkOre.x == chunk.xPosition && chunkOre.z == chunk.zPosition) {
-                    return Pair(veinOre, chunkOre)
+    return list
+}
+
+/**
+ * Generate Ore Region with all layers
+ */
+private fun RegionOre.generate() {
+    for (layer in 0 until LAYERS_VIRTUAL_ORES) {
+        val rawVeins = ArrayList<VeinOre>()
+        for (xx in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
+            for (zz in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
+                getRandomVirtualOre(layer, dim)?.also { ore ->
+                    VeinOre(
+                        xVein = (xRegion shl SHIFT_VEIN_FROM_REGION) + xx,
+                        zVein = (zRegion shl SHIFT_VEIN_FROM_REGION) + zz,
+                        oreId = ore.id,
+                    ).also { vein ->
+                        vein.generate(ore)
+                        rawVeins += vein
+                    }
                 }
             }
         }
-        return null
+        this.veins[layer] = rawVeins
     }
+}
+
+/**
+ * Get Vein and Chunk Ore
+ *
+ * @param layer layer
+ */
+@Deprecated(message = "deleted", level = DeprecationLevel.WARNING)
+fun Chunk.getVeinAndChunk(layer: Int): Pair<VeinOre, ChunkOre>? {
+    return createOreRegion().getVeinAndChunk(this, layer)
+}
+
+/**
+ * Get Vein and Chunk Ore
+ *
+ * @param chunk current chunk
+ * @param layer layer
+ */
+@Deprecated(message = "deleted", level = DeprecationLevel.WARNING)
+fun RegionOre.getVeinAndChunk(chunk: Chunk, layer: Int): Pair<VeinOre, ChunkOre>? {
+    veins[layer]?.forEach { veinOre ->
+        veinOre.oreChunks.forEach { chunkOre ->
+            if (chunkOre.x == chunk.xPosition && chunkOre.z == chunk.zPosition) {
+                return Pair(veinOre, chunkOre)
+            }
+        }
+    }
+    return null
+}
 }
