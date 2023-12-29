@@ -30,6 +30,7 @@ open class CommonProxy {
             ?.find { it?.provider?.dimensionId == 0 }
             ?.also { VirtualAPI.random = Random(it.seed) }
         VirtualAPI.resizeOreVeins()
+        VirtualAPI.resizeFluidVeins()
     }
 
     open fun serverStarted(event: FMLServerStartedEvent) {

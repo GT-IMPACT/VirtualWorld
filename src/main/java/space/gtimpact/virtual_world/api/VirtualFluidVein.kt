@@ -25,10 +25,11 @@ data class VirtualFluidVein(
     val depth: Int,
     val name: String,
     var weight: Double,
-    val rangeSize: IntRange,
+    val rangeSize: IntRange?,
     val color: Int,
     val dimensions: List<Int>,
     val fluid: VirtualFluidTypeComponent,
+    val isHidden: Boolean = false,
 ) {
     init {
         VirtualAPI.registerVirtualFluid(this)

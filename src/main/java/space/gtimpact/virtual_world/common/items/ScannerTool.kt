@@ -18,11 +18,13 @@ import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.client.event.MouseEvent
 import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.input.Keyboard
-import space.gtimpact.virtual_world.api.FluidGenerator.getVein
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualAPI.LAYERS_VIRTUAL_ORES
+import space.gtimpact.virtual_world.api.getFluidLayer
 import space.gtimpact.virtual_world.api.getOreLayer0
 import space.gtimpact.virtual_world.api.getOreLayer1
+import space.gtimpact.virtual_world.api.prospect.scanFluids
+import space.gtimpact.virtual_world.api.prospect.scanOres
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_SCANNER_TOOL
 import space.gtimpact.virtual_world.extras.send
 import space.gtimpact.virtual_world.extras.toTranslate
@@ -165,70 +167,11 @@ class ScannerTool : Item() {
 
             val radius = 11
 
-            val chX = player.posX.toInt() shr 4
-            val chZ = player.posZ.toInt() shr 4
-
-
-            val chunks: ArrayList<Chunk> = ArrayList()
-
-            for (x in -radius..radius) {
-                for (z in -radius..radius) {
-                    if (x != -radius && x != radius && z != -radius && z != radius) {
-                        chunks += world.getChunkFromChunkCoords(chX + x, chZ + z)
-                    }
-                }
+            when (type) {
+                TYPE_ORES -> scanOres(world, layer, player as EntityPlayerMP, radius)
+                TYPE_FLUIDS -> scanFluids(world, player as EntityPlayerMP, radius)
             }
-            val packet = FindVeinsPacket(chX, chZ, player.posX.toInt(), player.posZ.toInt(), radius - 1, type)
-            for (chunk in chunks) {
-                when (type) {
-                    TYPE_ORES -> scanOres(chunk, packet, layer)
-                    TYPE_FLUIDS -> scanFluids(chunk, packet)
-                }
-            }
-            packet.level = radius - 1
-            VirtualOresNetwork.sendToPlayer(packet, player as EntityPlayerMP)
         }
         return super.onItemRightClick(stack, world, player)
-    }
-
-    /**
-     * Scanning Virtual Fluids
-     */
-    private fun scanFluids(chunk: Chunk, packet: FindVeinsPacket) {
-        VirtualAPI.generateFluidRegion(chunk).also { region ->
-            region.getVein(chunk)?.let { veinFluid ->
-                VirtualAPI.getVirtualFluidVeinById(veinFluid.fluidId).also { vein ->
-                    val size = veinFluid.size.toDouble() / vein.rangeSize.last.toDouble() * 100.0
-                    fillPacketForChunk(chunk, packet, vein.id, size.toInt() / 1000)
-                }
-            }
-        }
-    }
-
-    /**
-     * Scanning Virtual Ores
-     */
-    private fun scanOres(chunk: Chunk, packet: FindVeinsPacket, layer: Int) {
-        val count = when(layer) {
-            0 -> chunk.getOreLayer0()
-            1 -> chunk.getOreLayer1()
-            else -> null
-        }
-
-        if (count != null) {
-            val size = count.size.toDouble() / count.type.rangeSize.last.toDouble() * 100.0
-            fillPacketForChunk(chunk, packet, count.type.id, size.toInt() / 1000)
-        }
-    }
-
-    /**
-     * Fill packet by chunk`s coordinates
-     */
-    private fun fillPacketForChunk(chunk: Chunk, packet: FindVeinsPacket, idComponent: Int, size: Int) {
-        for (xx in 0..15) {
-            for (zz in 0..15) {
-                packet.addRenderComponent(chunk.xPosition * 16 + xx, chunk.zPosition * 16 + zz, idComponent, size)
-            }
-        }
     }
 }

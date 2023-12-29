@@ -36,6 +36,7 @@ data class VirtualOreVein(
     val dimensions: List<Int>,
     val ores: List<VirtualOreComponent>,
     val special: VirtualSpecialTypeComponent? = null,
+    val isHidden: Boolean = false,
 ) {
     init {
         VirtualAPI.registerVirtualOre(this)

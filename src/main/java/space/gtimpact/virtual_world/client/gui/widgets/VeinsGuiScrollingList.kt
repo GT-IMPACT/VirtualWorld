@@ -13,13 +13,13 @@ class VeinsGuiScrollingList(
     private val onSelected: BiConsumer<String, Boolean>?,
 ) : GuiScrollingList(parent.mc, width, height, top, bottom, left, entryHeight) {
 
-    private val keys: List<String>
+    private val keys: ArrayList<String> = arrayListOf()
     private var invert = false
     private var selected = 0
 
     init {
-        keys = ArrayList(veins.keys)
-        keys.sorted()
+        keys.clear()
+        keys += veins.keys
         if (keys.size > 1) {
             keys.add(0, "All")
         }

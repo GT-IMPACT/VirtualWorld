@@ -3,9 +3,7 @@ package space.gtimpact.virtual_world.api
 import net.minecraft.world.ChunkCoordIntPair
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.DimensionManager
-import space.gtimpact.virtual_world.api.FluidGenerator.createFluidRegion
-import space.gtimpact.virtual_world.api.fluids.RegionFluid
-import space.gtimpact.virtual_world.api.ores.RegionOre
+import space.gtimpact.virtual_world.api.ResourceGenerator.getVeinChunks
 import space.gtimpact.virtual_world.config.Config
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_FLUIDS
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_ORES
@@ -30,18 +28,6 @@ object VirtualAPI {
      */
     @JvmField
     val VIRTUAL_FLUIDS: HashSet<VirtualFluidVein> = HashSet(Config.MAX_SIZE_REGISTERED_VIRTUAL_ORES)
-
-    /**
-     * Current generated Virtual Ores
-     */
-    @JvmField
-    val GENERATED_REGIONS_VIRTUAL_ORES: HashMap<Int, HashMap<Int, RegionOre>> = HashMap()
-
-    /**
-     * Current generated Virtual Fluids
-     */
-    @JvmField
-    val GENERATED_REGIONS_VIRTUAL_FLUIDS: HashMap<Int, HashMap<Int, RegionFluid>> = HashMap()
 
     /**
      * Max layers of Virtual ores
@@ -216,8 +202,8 @@ object VirtualAPI {
      * @param oreId ID virtual vein
      */
     @JvmStatic
-    fun getVirtualFluidVeinById(oreId: Int): VirtualFluidVein {
-        return VIRTUAL_FLUIDS.first { it.id == oreId }
+    fun getVirtualFluidVeinById(oreId: Int): VirtualFluidVein? {
+        return VIRTUAL_FLUIDS.find { it.id == oreId }
     }
 
     /**
@@ -238,14 +224,17 @@ object VirtualAPI {
         }
     }
 
+    @JvmStatic
+    fun getFluidInfoChunk(ch: Chunk): FluidVeinCount? {
+        return ch.getFluidLayer()
+    }
+
     /**
-     * Generate Virtual Fluids by Minecraft Chunk
-     *
-     * @param chunk minecraft chunk
+     * Extract from current Vein chunks
      */
     @JvmStatic
-    fun generateFluidRegion(chunk: Chunk): RegionFluid {
-        return chunk.createFluidRegion()
+    fun extractFluidFromVein(ch: Chunk, amount: Int): FluidVeinCount? {
+        return ch.extractFluidFormVein(amount)
     }
 
     /**
