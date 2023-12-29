@@ -7,64 +7,65 @@ import net.minecraft.world.World
 import net.minecraft.world.WorldSavedData
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.WorldEvent
+import space.gtimpact.virtual_world.extras.NBT
+import kotlin.properties.Delegates
 
 class VirtualWorldSaveData(name: String) : WorldSavedData(name) {
-
     constructor() : this(DATA_NAME)
-
-    companion object {
-        private const val DATA_NAME = "VirtualWorldSaveData"
-        private var INSTANCE: VirtualWorldSaveData? = null
-
-        private fun loadWorld(w: World) {
-            val storage = w.mapStorage
-            val wsd = storage.loadData(VirtualWorldSaveData::class.java, DATA_NAME)
-            if (wsd == null) {
-                INSTANCE = VirtualWorldSaveData()
-                storage.setData(DATA_NAME, INSTANCE)
-            } else {
-                INSTANCE = wsd as? VirtualWorldSaveData
-            }
-            INSTANCE?.markDirty()
-        }
-    }
 
     @Suppress("unused")
     @SubscribeEvent
     fun onWorldLoad(e: WorldEvent.Load) {
-        if (!e.world.isRemote && e.world.provider.dimensionId == 0) loadWorld(e.world)
+        if (!e.world.isRemote) getInstance(e.world).markDirty()
     }
 
-    override fun readFromNBT(nbt: NBTTagCompound) {
-        val resTag = nbt.getCompoundTag("VIRTUAL_WORLD")
-        val worldList = resTag.getTag("WORLD_LIST") as NBTTagList
+    @Suppress("unused")
+    @SubscribeEvent
+    fun onWorldLoad(e: WorldEvent.Save) {
+        if (!e.world.isRemote) getInstance(e.world).markDirty()
+    }
 
+    companion object {
+        internal const val DATA_NAME = "VirtualWorld"
 
-        for (i in 0 until worldList.tagCount()) {
-            val worldTag = worldList.getCompoundTagAt(i)
-            val dimId = worldTag.getInteger("WORLD_ID")
-            val worldServer = DimensionManager.getWorld(dimId)
-            if (worldServer is IWorldNbt) {
-                worldServer.readFromNBT(worldTag)
+        @JvmStatic
+        fun getInstance(world: World): VirtualWorldSaveData {
+            val storage = world.perWorldStorage
+            var instance = storage.loadData(VirtualWorldSaveData::class.java, DATA_NAME) as? VirtualWorldSaveData
+            if (instance == null) {
+                instance = VirtualWorldSaveData()
+                storage.setData(DATA_NAME, instance)
             }
+
+            if (instance.world == null)
+                instance.world = world
+
+            return instance
+        }
+    }
+
+    var world: World? = null
+
+
+    override fun readFromNBT(nbt: NBTTagCompound) {
+        val worldServer = world
+
+        val resTag = nbt.getCompoundTag(NBT.VIRTUAL_WORLD)
+
+        if (worldServer is IWorldNbt) {
+            worldServer.readFromNBT(resTag)
         }
     }
 
     override fun writeToNBT(nbt: NBTTagCompound) {
-        val nbtWorlds = NBTTagCompound()
-        val listWorlds = NBTTagList()
+        val worldServer = world
 
-        for (worldServer in DimensionManager.getWorlds()) {
-            if (worldServer is IWorldNbt) {
-                val worldTag = NBTTagCompound()
-                worldTag.setInteger("WORLD_ID", worldServer.provider.dimensionId)
-                worldServer.writeToNBT(worldTag)
-                listWorlds.appendTag(worldTag)
-            }
+        if (worldServer is IWorldNbt) {
+            val worldTag = NBTTagCompound()
+            worldTag.setInteger(NBT.WORLD_ID, worldServer.provider.dimensionId)
+            worldServer.writeToNBT(worldTag)
+            nbt.setTag(NBT.VIRTUAL_WORLD, worldTag)
         }
-
-        nbtWorlds.setTag("WORLD_LIST", listWorlds)
-        nbt.setTag("VIRTUAL_WORLD", nbtWorlds)
     }
 }
 

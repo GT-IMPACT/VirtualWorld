@@ -2,6 +2,8 @@ package space.gtimpact.virtual_world
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import net.minecraftforge.common.DimensionManager
 import space.gtimpact.virtual_world.api.TypeFluidVein
 import space.gtimpact.virtual_world.api.VirtualAPI
@@ -14,6 +16,7 @@ import java.io.File
 import java.io.FileWriter
 import java.util.*
 
+@Deprecated("Migrated to NBT WorldSaveData")
 object JsonManager {
 
     private var WORLD_DIRECTORY: File? = null
@@ -53,11 +56,6 @@ object JsonManager {
     }
 
     fun save() {
-//        runBlocking(Dispatchers.IO) {
-//            saveOres()
-//            saveFluids()
-//        }
-
         clearData()
         WORLD_DIRECTORY = null
     }
@@ -65,11 +63,6 @@ object JsonManager {
     fun load() {
         initData()
         clearData()
-
-//        runBlocking {
-//            loadOres()
-//            loadFluids()
-//        }
     }
 
     private fun loadOres() {
