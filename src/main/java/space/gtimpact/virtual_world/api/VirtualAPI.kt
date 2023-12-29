@@ -92,7 +92,7 @@ object VirtualAPI {
                 for (virtualOre in VIRTUAL_ORES) {
                     if (virtualOre.layer == layer) {
                         for (dimension in virtualOre.dimensions) {
-                            if (dimension == dim) {
+                            if (dimension.first == dim) {
                                 list += virtualOre
                             }
                         }
@@ -215,7 +215,7 @@ object VirtualAPI {
             val list = ArrayList<VirtualFluidVein>()
             for (virtualOre in VIRTUAL_FLUIDS) {
                 for (dimension in virtualOre.dimensions) {
-                    if (dimension == dim) {
+                    if (dimension.first == dim) {
                         list += virtualOre
                     }
                 }

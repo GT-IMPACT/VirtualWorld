@@ -33,7 +33,7 @@ data class VirtualOreVein(
     var weight: Double,
     val rangeSize: IntRange,
     val color: Int,
-    val dimensions: List<Int>,
+    val dimensions: List<Pair<Int, String>>,
     val ores: List<VirtualOreComponent>,
     val special: VirtualSpecialTypeComponent? = null,
     val isHidden: Boolean = false,

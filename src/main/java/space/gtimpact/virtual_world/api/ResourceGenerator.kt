@@ -84,7 +84,8 @@ object ResourceGenerator {
                     x = (xVein shl SHIFT_CHUNK_FROM_VEIN) + x,
                     z = (zVein shl SHIFT_CHUNK_FROM_VEIN) + z,
                 ).apply {
-                    size = Random.nextInt(ore.rangeSize.first * 1000, ore.rangeSize.last * 1000)
+                    if (!ore.isHidden && ore.rangeSize.last > 0)
+                        size = Random.nextInt(ore.rangeSize.first * 1000, ore.rangeSize.last * 1000)
                     oreChunks += this
                 }
             }
@@ -127,7 +128,7 @@ object ResourceGenerator {
                     z = (zVein shl SHIFT_CHUNK_FROM_VEIN) + z,
                     type = TypeFluidVein.values().random(),
                 ).apply {
-                    if (vein.rangeSize != null && vein.rangeSize.last > 0)
+                    if (!vein.isHidden && vein.rangeSize.last > 0)
                         size = Random.nextInt(vein.rangeSize.first * 1000, vein.rangeSize.last * 1000)
                     oreChunks += this
                 }

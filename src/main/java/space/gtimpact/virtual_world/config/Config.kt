@@ -15,6 +15,10 @@ object Config {
     var IS_DISABLED_VIRTUAL_FLUIDS = false
     var IS_DISABLED_SCANNER_TOOL = false
 
+    var countWaterForLPDrill = 10
+    var countWaterForMPDrill = 100
+    var countWaterForHPDrill = 1000
+
     private inline fun onPostCreate(configFile: File?, crossinline action: (Configuration) -> Unit) {
         Configuration(configFile).let { config ->
             config.load()
@@ -61,6 +65,33 @@ object Config {
                 GENERAL,
                 IS_DISABLED_SCANNER_TOOL,
                 "Disabled Scanner Tool"
+            )
+
+            countWaterForLPDrill = cfg.getInt(
+                "countWaterForLPDrill",
+                GENERAL,
+                countWaterForLPDrill,
+                0,
+                100,
+                "Count Water For LP Drilling Fluids"
+            )
+
+            countWaterForMPDrill = cfg.getInt(
+                "countWaterForMPDrill",
+                GENERAL,
+                countWaterForMPDrill,
+                0,
+                1000,
+                "Count Water For MP Drilling Fluids"
+            )
+
+            countWaterForHPDrill = cfg.getInt(
+                "countWaterForHPDrill",
+                GENERAL,
+                countWaterForHPDrill,
+                0,
+                10000,
+                "Count Water For HP Drilling Fluids"
             )
         }
     }

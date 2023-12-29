@@ -28,7 +28,7 @@ buildConfig {
 }
 
 dependencies {
-    runtimeOnly("com.github.GTNewHorizons:NotEnoughItems:2.3.53-GTNH:dev")
+    implementation("com.github.GTNewHorizons:NotEnoughItems:2.3.53-GTNH:dev")
     api("space.impact:forgelin:2.0.+") { isChanging = true }
 }
 

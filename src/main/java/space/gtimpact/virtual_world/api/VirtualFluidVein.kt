@@ -22,12 +22,11 @@ typealias VirtualFluidTypeComponent = FluidStack
  */
 data class VirtualFluidVein(
     val id: Int,
-    val depth: Int,
     val name: String,
     var weight: Double,
-    val rangeSize: IntRange?,
+    val rangeSize: IntRange,
     val color: Int,
-    val dimensions: List<Int>,
+    val dimensions: List<Pair<Int, String>>,
     val fluid: VirtualFluidTypeComponent,
     val isHidden: Boolean = false,
 ) {
