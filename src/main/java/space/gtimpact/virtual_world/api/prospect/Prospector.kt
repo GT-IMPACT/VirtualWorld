@@ -77,7 +77,7 @@ fun scanFluids(w: World, player: EntityPlayerMP, radius: Int) {
 
 private fun scanFluidChunk(chunk: Chunk, packet: FindVeinsPacket) {
     val count = chunk.getFluidLayer()
-    if (count != null && count.vein.rangeSize != null && count.vein.rangeSize.last > 0) {
+    if (count != null && count.vein.rangeSize.last > 0) {
         val size = count.size.toDouble() / count.vein.rangeSize.last.toDouble() * 100.0
         fillPacketForChunk(chunk, packet, count.vein.id, size.toInt() / 1000)
     }

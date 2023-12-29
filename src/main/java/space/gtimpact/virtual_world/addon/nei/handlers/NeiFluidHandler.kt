@@ -200,7 +200,6 @@ class NeiFluidHandler : TemplateRecipeHandler() {
             virtualWorldNeiFluidHandler.getItemFromFluid(fluid.fluid, false)?.also { stack ->
                 mOutputs.add(FixedPositionedStack(stack = stack, x = 4, y = 25))
             }
-            mOutputs.add(FixedPositionedStack(stack = ItemStack(Items.bucket), x = 4, y = 25))
 
             TypeFluidVein.values().forEachIndexed { i, type ->
 
@@ -211,9 +210,8 @@ class NeiFluidHandler : TemplateRecipeHandler() {
                 }
 
                 virtualWorldNeiFluidHandler.getItemFromFluid(fluidStack, true)?.also { stack ->
-                    mInputs.add(FixedPositionedStack(stack = stack, x = 4, y = 72 + i * 30))
+                    mInputs.add(FixedPositionedStack(stack = stack, x = 4, y = 75 + i * 30))
                 }
-                mInputs.add(FixedPositionedStack(stack = ItemStack(Items.bucket, fluidStack?.amount ?: 1), x = 4, y = 75 + i * 30))
             }
         }
 

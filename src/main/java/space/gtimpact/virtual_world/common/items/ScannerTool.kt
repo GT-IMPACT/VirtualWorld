@@ -14,22 +14,16 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.IIcon
 import net.minecraft.world.World
-import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.client.event.MouseEvent
 import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.input.Keyboard
-import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualAPI.LAYERS_VIRTUAL_ORES
-import space.gtimpact.virtual_world.api.getFluidLayer
-import space.gtimpact.virtual_world.api.getOreLayer0
-import space.gtimpact.virtual_world.api.getOreLayer1
 import space.gtimpact.virtual_world.api.prospect.scanFluids
 import space.gtimpact.virtual_world.api.prospect.scanOres
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_SCANNER_TOOL
 import space.gtimpact.virtual_world.extras.send
 import space.gtimpact.virtual_world.extras.toTranslate
 import space.gtimpact.virtual_world.network.ChangeLayerScannerPacket
-import space.gtimpact.virtual_world.network.FindVeinsPacket
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
 import space.impact.impact_vw.ASSETS
 
