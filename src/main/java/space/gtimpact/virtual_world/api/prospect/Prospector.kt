@@ -64,7 +64,7 @@ fun scanFluids(w: World, player: EntityPlayerMP, radius: Int) {
         }
     }
 
-    val packet = FindVeinsPacket(chX, chZ, player.posX.toInt(), player.posZ.toInt(), radius - 1, ScannerTool.TYPE_ORES)
+    val packet = FindVeinsPacket(chX, chZ, player.posX.toInt(), player.posZ.toInt(), radius - 1, ScannerTool.TYPE_FLUIDS)
 
     for (chunk in chunks)
         scanFluidChunk(chunk, packet)
