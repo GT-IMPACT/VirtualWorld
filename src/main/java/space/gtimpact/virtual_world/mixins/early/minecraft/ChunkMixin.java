@@ -28,12 +28,15 @@ public abstract class ChunkMixin implements IModifiableChunk {
     @Unique
     private NBTTagCompound virtualWorld$chunkNbt = null;
 
+    @Unique
+    private boolean isModified = false;
+
     @Override
     public void writeToNBT(@NotNull NBTTagCompound nbt) {
-        if (virtualWorld$chunkNbt != null)
+        if (virtualWorld$chunkNbt != null) {
             nbt.setTag(NBT_KEY, virtualWorld$chunkNbt);
-
-        System.out.println("writeToNBT chunk");
+            isModified = false;
+        }
     }
 
     @Override
@@ -42,8 +45,6 @@ public abstract class ChunkMixin implements IModifiableChunk {
 
         if (virtualWorld$chunkNbt == null)
             virtualWorld$chunkNbt = new NBTTagCompound();
-
-        System.out.println("readFromNBT chunk");
     }
 
     @Override
@@ -61,6 +62,8 @@ public abstract class ChunkMixin implements IModifiableChunk {
     @Override
     public void setNbt(@NotNull NBTTagCompound nbt, @NotNull String name) {
 
+        isModified = true;
+
         if (virtualWorld$chunkNbt == null)
             virtualWorld$chunkNbt = new NBTTagCompound();
 
@@ -77,7 +80,7 @@ public abstract class ChunkMixin implements IModifiableChunk {
 
     @Override
     public boolean isModified() {
-        return virtualWorld$chunkNbt != null;
+        return isModified;
     }
 
     @NotNull

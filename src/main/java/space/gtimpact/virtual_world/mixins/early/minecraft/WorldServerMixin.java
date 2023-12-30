@@ -1,5 +1,6 @@
 package space.gtimpact.virtual_world.mixins.early.minecraft;
 
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.profiler.Profiler;
@@ -8,17 +9,21 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.storage.ISaveHandler;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import space.gtimpact.virtual_world.common.world.IChunkNbt;
 import space.gtimpact.virtual_world.common.world.IModifiableChunk;
 import space.gtimpact.virtual_world.common.world.IWorldNbt;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 @Mixin(WorldServer.class)
 public abstract class WorldServerMixin extends World implements IWorldNbt {
 
+    @Shadow public List<Teleporter> customTeleporters;
     @Unique
     private Set<ChunkCoordIntPair> virtualWorld$nbtChunks = new HashSet<>();
 
@@ -49,7 +54,9 @@ public abstract class WorldServerMixin extends World implements IWorldNbt {
                 if (ch instanceof IChunkNbt) {
                     try {
                         ((IChunkNbt) ch).readFromNBT(chunk);
-                    } catch (Exception ignored) {}
+                    } catch (Exception e) {
+                        FMLLog.getLogger().error(e.getMessage());
+                    }
                 }
                 virtualWorld$nbtChunks.add(ch.getChunkCoordIntPair());
             }
@@ -71,7 +78,9 @@ public abstract class WorldServerMixin extends World implements IWorldNbt {
                            ((IModifiableChunk) ch).writeToNBT(chunkNbt);
                            chunks.appendTag(chunkNbt);
                        }
-                   } catch (Exception ignored) {}
+                   } catch (Exception e) {
+                       FMLLog.getLogger().error(e.getMessage());
+                   }
                 }
             }
         }
