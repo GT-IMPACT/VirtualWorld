@@ -5,32 +5,38 @@ import codechicken.nei.PositionedStack
 import codechicken.nei.recipe.*
 import cpw.mods.fml.common.event.FMLInterModComms
 import net.minecraft.init.Blocks
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fluids.FluidRegistry
-import net.minecraftforge.fluids.FluidStack
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.addon.nei.NEIBoostrapConfig
 import space.gtimpact.virtual_world.addon.nei.other.FixedPositionedStack
-import space.gtimpact.virtual_world.addon.nei.other.areUnificationsEqual
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualOreVein
-import space.gtimpact.virtual_world.api.virtualWorldNeiFluidHandler
 import space.gtimpact.virtual_world.extras.drawText
 import space.impact.impact_vw.ASSETS
 import space.impact.impact_vw.MODID
 import space.impact.impact_vw.MODNAME
 import java.awt.Color
 import java.awt.Rectangle
-import java.text.NumberFormat
-import kotlin.math.max
 
-class NeiOreHandler : TemplateRecipeHandler() {
+class NeiOreDimensionsHandler : TemplateRecipeHandler() {
 
-    private val registerOres = VirtualAPI.VIRTUAL_ORES
-        .filter { !it.isHidden }
-        .sortedBy { it.layer }
+    private val registerOres = run {
+        val map = hashMapOf<String, List<VirtualOreVein>>()
+        VirtualAPI.VIRTUAL_ORES.flatMap { it.dimensions }.distinct().forEach {
+            val list = arrayListOf<VirtualOreVein>()
+            VirtualAPI.VIRTUAL_ORES.forEach { vein ->
+                if (vein.dimensions.contains(it)) {
+                    list += vein
+                }
+            }
+            map[it.second] = list
+        }
+        map.map { it.key to it.value }
+    }
+
 
     init {
         transferRects += RecipeTransferRect(Rectangle(4, 0, 50, 16), overlayIdentifier)
@@ -56,7 +62,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
     }
 
     override fun newInstance(): TemplateRecipeHandler {
-        return NeiOreHandler()
+        return NeiOreDimensionsHandler()
     }
 
     override fun recipiesPerPage(): Int {
@@ -64,7 +70,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
     }
 
     override fun getRecipeName(): String {
-        return "World Ores"
+        return "World Ores Dimensions"
     }
 
     override fun getGuiTexture(): String {
@@ -78,38 +84,32 @@ class NeiOreHandler : TemplateRecipeHandler() {
         val ore = cache?.ore ?: return
 
         val clr = Color.BLACK.hashCode()
-        val vName: String = ore.name
 
         drawText(4, 0, "Show All", Color(84, 81, 81).hashCode())
-        drawText(4, 12, "$vName Vein", clr)
-
-        if (virtualWorldNeiFluidHandler.isModified) drawText(4, 48, "Need Special Fluid:", clr)
-        val sizeVein = NumberFormat.getNumberInstance().format(ore.rangeSize.first) + " - " + NumberFormat.getNumberInstance().format(ore.rangeSize.last)
-        drawText(4, 84, "Size: " + sizeVein + "k cycles", clr)
-        drawText(4, 96, "Layer: ${ore.layer}", clr)
+        drawText(4, 10, "Dim Name: ${ore.first}", clr);
 
         drawText(164 - GuiDraw.fontRenderer.getStringWidth("Use Shift"), 0, "Use Shift", Color(84, 81, 81).hashCode())
-        var dims = mutableListOf<String>()
+        val oreVeins = mutableListOf<String>()
 
-        for ((i, dimension) in ore.dimensions.withIndex()) {
-            dims.add((i + 1).toString() + ". " + dimension.second)
+        ore.second.take(29).forEach { virtualOreVein ->
+            oreVeins.add(virtualOreVein.name.take(13) + if (virtualOreVein.name.length > 13) ".." else "")
         }
+
+        if (ore.second.size >= 30)
+            oreVeins.add("and more..")
 
         ttDisplayed = false
         if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
-            if (dims.size >= 15) {
-                val dims2: List<String?> = dims.subList(15, dims.size)
-                dims = dims.subList(0, 15)
-                val w: Int = calculateMaxW(dims)
-                GuiDraw.drawMultilineTip(w + 15, 0, dims2)
+            oreVeins.chunked(15).forEachIndexed { column, veins ->
+                val w = if (column > 0) calculateMaxW(veins) else 0
+                GuiDraw.drawMultilineTip( -2 + 15 * column + w, 0, veins)
             }
-            GuiDraw.drawMultilineTip(0, 0, dims)
             ttDisplayed = true
         }
     }
 
     override fun getOverlayIdentifier(): String {
-        return "virtual_world_ores_all"
+        return "virtual_world_ores_dim"
     }
 
     override fun drawBackground(recipe: Int) {
@@ -128,12 +128,8 @@ class NeiOreHandler : TemplateRecipeHandler() {
                     break
                 }
             }
-            for (tStack in tObject.mInputs) {
-                if (aStack?.item == tStack.item?.item)
-                    currenttip.add("Per 1 cycle")
-            }
         }
-        return currenttip.distinct()
+        return currenttip
     }
 
     override fun loadCraftingRecipes(outputId: String, vararg results: Any?) {
@@ -181,33 +177,27 @@ class NeiOreHandler : TemplateRecipeHandler() {
 
         val mOutputs: MutableList<PositionedStack> = ArrayList()
         val mInputs: MutableList<PositionedStack> = ArrayList()
-        val ore: VirtualOreVein
+        val ore: Pair<String, List<VirtualOreVein>>
 
-        constructor(vein: VirtualOreVein) {
-            this.ore = vein
-            var x = 0
+        constructor(pair: Pair<String, List<VirtualOreVein>>) {
+            this.ore = pair
 
-            val fs = virtualWorldNeiFluidHandler.getDrillFluid()
-            val fluid = fs?.let { FluidStack(it, 50) }
-
-            for ((i, component) in ore.ores.withIndex()) {
-                if (i % 8 == 0) x++
-                mOutputs.add(
-                    FixedPositionedStack(
-                        stack = component.ore,
-                        x = 4 + i * 18,
-                        y = 5 + x * 18,
-                        chance = component.chance * 100
-                    )
-                )
+            val stacks = hashSetOf<Item>()
+            for (vein in ore.second) {
+                for (stack in vein.ores) {
+                    stacks.add(stack.ore.item)
+                }
             }
+            var y = 0
+            var count = 0
 
-            virtualWorldNeiFluidHandler.getItemFromFluid(fluid, true)?.also { stack ->
-                mInputs.add(FixedPositionedStack(stack = stack, x = 4, y = 41 + 18))
-            }
-
-            virtualWorldNeiFluidHandler.getItemFromFluid(ore.special, true)?.also { stack ->
-                mInputs.add(FixedPositionedStack(stack = stack, x = 4 + 18, y = 41 + 18))
+            stacks.forEachIndexed { index, itemStack ->
+                mOutputs.add(FixedPositionedStack(ItemStack(itemStack), 4 + index % 9 * 18, 20 + y * 18))
+                count++
+                if (count == 9) {
+                    y++
+                    count = 0
+                }
             }
         }
 
@@ -223,12 +213,4 @@ class NeiOreHandler : TemplateRecipeHandler() {
             return getCycledIngredients(cycleticks / 10, this.mOutputs)
         }
     }
-}
-
-fun calculateMaxW(length: List<String?>): Int {
-    var w = 0
-    for (s in length) {
-        w = max(GuiDraw.fontRenderer.getStringWidth(s).toDouble(), w.toDouble()).toInt()
-    }
-    return w
 }

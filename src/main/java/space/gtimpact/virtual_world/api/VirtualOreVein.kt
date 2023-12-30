@@ -26,7 +26,7 @@ typealias VirtualSpecialTypeComponent = FluidStack
  * @param ores components of ore vein
  * @param special special drilling component
  */
-data class VirtualOreVein(
+class VirtualOreVein(
     val id: Int,
     val layer: Int,
     val name: String,

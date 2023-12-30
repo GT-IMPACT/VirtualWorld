@@ -15,7 +15,7 @@ interface IFluidDisplayHandler {
 var virtualWorldNeiFluidHandler: IFluidDisplayHandler = object : IFluidDisplayHandler {
     override fun getItemFromFluid(stack: FluidStack?, useStackSize: Boolean): ItemStack? = null
     override fun getFluidFromStack(stack: ItemStack?): FluidStack? = null
-    override fun getDrillFluid(): Fluid?  = null
+    override fun getDrillFluid(): Fluid? = null
     override val itemDisplay: ItemStack? = null
     override val isModified: Boolean = false
 }

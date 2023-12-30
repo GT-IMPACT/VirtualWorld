@@ -89,10 +89,10 @@ class NeiFluidHandler : TemplateRecipeHandler() {
         drawText(4, 50, "Size: " + sizeVein + "k cycles", clr)
 
         TypeFluidVein.values().forEach {
-            when(it) {
-                TypeFluidVein.LP -> if (Config.countWaterForLPDrill > 0) drawText(4, 65, "Low Pressure:", clr)
-                TypeFluidVein.MP -> if (Config.countWaterForMPDrill > 0) drawText(4, 85 + 10, "Medium Pressure:", clr)
-                TypeFluidVein.HP -> if (Config.countWaterForHPDrill > 0) drawText(4, 105 + 20, "High Pressure:", clr)
+            when (it) {
+                TypeFluidVein.LP -> if (Config.countWaterForLPDrill > 0) drawText(4, 65, "Low Pressure Consume:", clr)
+                TypeFluidVein.MP -> if (Config.countWaterForMPDrill > 0) drawText(4, 85 + 10, "Medium Pressure Consume:", clr)
+                TypeFluidVein.HP -> if (Config.countWaterForHPDrill > 0) drawText(4, 105 + 20, "High Pressure Consume:", clr)
             }
         }
 
@@ -117,7 +117,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
     }
 
     override fun getOverlayIdentifier(): String {
-        return "virtual_world_fluids"
+        return "virtual_world_fluids_all"
     }
 
     override fun drawBackground(recipe: Int) {
@@ -137,14 +137,11 @@ class NeiFluidHandler : TemplateRecipeHandler() {
                 }
             }
             for (tStack in tObject.mInputs) {
-                if (aStack == tStack.item) {
-                    if (areUnificationsEqual(virtualWorldNeiFluidHandler.itemDisplay, tStack.item, true)) {
-                        currenttip.add("Per 1 cycle")
-                    }
-                }
+                if (aStack?.item == tStack.item?.item)
+                    currenttip.add("Per 1 cycle")
             }
         }
-        return currenttip
+        return currenttip.distinct()
     }
 
     override fun loadCraftingRecipes(outputId: String, vararg results: Any?) {
@@ -203,7 +200,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
 
             TypeFluidVein.values().forEachIndexed { i, type ->
 
-                val fluidStack = when(type) {
+                val fluidStack = when (type) {
                     TypeFluidVein.LP -> if (Config.countWaterForLPDrill > 0) FluidStack(FluidRegistry.WATER, Config.countWaterForLPDrill) else null
                     TypeFluidVein.MP -> if (Config.countWaterForMPDrill > 0) FluidStack(FluidRegistry.WATER, Config.countWaterForMPDrill) else null
                     TypeFluidVein.HP -> if (Config.countWaterForHPDrill > 0) FluidStack(FluidRegistry.WATER, Config.countWaterForHPDrill) else null

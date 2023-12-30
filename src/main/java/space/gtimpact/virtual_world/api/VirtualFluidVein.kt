@@ -20,7 +20,7 @@ typealias VirtualFluidTypeComponent = FluidStack
  * @param fluid component of fluid vein
  * @param type type of vein
  */
-data class VirtualFluidVein(
+class VirtualFluidVein(
     val id: Int,
     val name: String,
     var weight: Double,

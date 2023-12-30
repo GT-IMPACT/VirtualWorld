@@ -4,7 +4,9 @@ import codechicken.nei.NEIModContainer
 import codechicken.nei.api.IConfigureNEI
 import cpw.mods.fml.common.FMLCommonHandler
 import cpw.mods.fml.common.Optional
+import space.gtimpact.virtual_world.addon.nei.handlers.NeiFluidDimensionsHandler
 import space.gtimpact.virtual_world.addon.nei.handlers.NeiFluidHandler
+import space.gtimpact.virtual_world.addon.nei.handlers.NeiOreDimensionsHandler
 import space.gtimpact.virtual_world.addon.nei.handlers.NeiOreHandler
 
 @Optional.Interface(iface = "codechicken.nei.api.API", modid = "NotEnoughItems")
@@ -34,6 +36,8 @@ class NEIBoostrapConfig : IConfigureNEI {
 
     private fun registerHandlers() {
         NeiOreHandler()
+        NeiOreDimensionsHandler()
         NeiFluidHandler()
+        NeiFluidDimensionsHandler()
     }
 }
