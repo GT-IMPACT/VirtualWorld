@@ -5,25 +5,23 @@ import codechicken.nei.PositionedStack
 import codechicken.nei.recipe.*
 import cpw.mods.fml.common.event.FMLInterModComms
 import net.minecraft.init.Blocks
-import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
-import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.addon.nei.NEIBoostrapConfig
 import space.gtimpact.virtual_world.addon.nei.other.FixedPositionedStack
-import space.gtimpact.virtual_world.addon.nei.other.areUnificationsEqual
 import space.gtimpact.virtual_world.api.TypeFluidVein
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualFluidVein
 import space.gtimpact.virtual_world.api.virtualWorldNeiFluidHandler
 import space.gtimpact.virtual_world.config.Config
 import space.gtimpact.virtual_world.extras.drawText
-import space.impact.impact_vw.ASSETS
-import space.impact.impact_vw.MODID
-import space.impact.impact_vw.MODNAME
+import space.gtimpact.virtual_world.ASSETS
+import space.gtimpact.virtual_world.MODID
+import space.gtimpact.virtual_world.MODNAME
+import space.gtimpact.virtual_world.VirtualOres
 import java.awt.Color
 import java.awt.Rectangle
 import java.text.NumberFormat
@@ -96,7 +94,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
             }
         }
 
-        drawText(164 - GuiDraw.fontRenderer.getStringWidth("Use Shift"), 0, "Use Shift", Color(84, 81, 81).hashCode())
+        drawText(164 - GuiDraw.getStringWidth("Use Shift"), 0, "Use Shift", Color(84, 81, 81).hashCode())
         var dims = mutableListOf<String>()
 
         for ((i, dimension) in ore.dimensions.withIndex()) {

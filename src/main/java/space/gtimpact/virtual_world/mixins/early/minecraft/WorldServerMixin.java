@@ -1,31 +1,25 @@
 package space.gtimpact.virtual_world.mixins.early.minecraft;
 
-import cpw.mods.fml.common.FMLLog;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.*;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.storage.ISaveHandler;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import space.gtimpact.virtual_world.common.world.IChunkNbt;
 import space.gtimpact.virtual_world.common.world.IModifiableChunk;
 import space.gtimpact.virtual_world.common.world.IWorldNbt;
+import space.gtimpact.virtual_world.extras.NBT;
+import space.gtimpact.virtual_world.util.WorldNBT;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
+import java.util.*;
 
+@SuppressWarnings("ALL")
 @Mixin(WorldServer.class)
 public abstract class WorldServerMixin extends World implements IWorldNbt {
 
-    @Shadow public List<Teleporter> customTeleporters;
     @Unique
-    private Set<ChunkCoordIntPair> virtualWorld$nbtChunks = new HashSet<>();
+    private HashMap<ChunkCoordIntPair, NBTTagCompound> virtualWorld$nbtChunks = new HashMap<>();
 
     public WorldServerMixin(ISaveHandler p_i45368_1_, String p_i45368_2_, WorldProvider p_i45368_3_, WorldSettings p_i45368_4_, Profiler p_i45368_5_) {
         super(p_i45368_1_, p_i45368_2_, p_i45368_3_, p_i45368_4_, p_i45368_5_);
@@ -36,54 +30,49 @@ public abstract class WorldServerMixin extends World implements IWorldNbt {
     }
 
     @Override
-    public void addChunk(@NotNull IChunkNbt ch) {
-        virtualWorld$nbtChunks.add(ch.getCoords());
+    public void addChunk(@NotNull IModifiableChunk ch, @NotNull NBTTagCompound nbt, @NotNull String tagName) {
+        NBTTagCompound chunk = virtualWorld$nbtChunks.get(ch.getCoords());
+
+        if (chunk == null) {
+            chunk = new NBTTagCompound();
+        }
+
+        NBTTagCompound chunkData = chunk.getCompoundTag(NBT.CHUNK_DATA);
+
+        if (chunkData == null || chunkData.hasNoTags())
+            chunkData = new NBTTagCompound();
+
+        chunkData.setTag(tagName, nbt);
+
+        chunk.setTag(NBT.CHUNK_DATA, chunkData);
+
+        virtualWorld$nbtChunks.put(ch.getCoords(), chunk);
+    }
+
+    @NotNull
+    @Override
+    public NBTTagCompound getChunkNbt(@NotNull IModifiableChunk ch) {
+        NBTTagCompound chunk = virtualWorld$nbtChunks.get(ch.getCoords());
+
+        if (chunk == null) {
+            chunk = new NBTTagCompound();
+        }
+
+        NBTTagCompound chunkData = chunk.getCompoundTag(NBT.CHUNK_DATA);
+
+        if (chunkData == null || chunkData.hasNoTags())
+            chunkData = new NBTTagCompound();
+
+        return chunkData;
     }
 
     @Override
     public void readFromNBT(@NotNull NBTTagCompound nbt) {
-        virtualWorld$nbtChunks.clear();
-        NBTTagList chunks = (NBTTagList) nbt.getTag("chunks");
-        for (int i = 0; i < chunks.tagCount(); i++) {
-            NBTTagCompound chunk = chunks.getCompoundTagAt(i);
-            if (chunk != null) {
-                Chunk ch = getChunkFromChunkCoords(
-                        chunk.getInteger("x"),
-                        chunk.getInteger("z")
-                );
-                if (ch instanceof IChunkNbt) {
-                    try {
-                        ((IChunkNbt) ch).readFromNBT(chunk);
-                    } catch (Exception e) {
-                        FMLLog.getLogger().error(e.getMessage());
-                    }
-                }
-                virtualWorld$nbtChunks.add(ch.getChunkCoordIntPair());
-            }
-        }
+        WorldNBT.readFromNBTWorld(virtualWorld$nbtChunks, nbt, this);
     }
 
     @Override
     public void writeToNBT(@NotNull NBTTagCompound nbt) {
-        NBTTagList chunks = new NBTTagList();
-        for (ChunkCoordIntPair pair : virtualWorld$nbtChunks) {
-            NBTTagCompound chunkNbt = new NBTTagCompound();
-            Chunk ch = getChunkFromChunkCoords(pair.chunkXPos, pair.chunkZPos);
-            if (ch != null) {
-                if (ch instanceof IModifiableChunk) {
-                   try {
-                       if (((IModifiableChunk) ch).isModified()) {
-                           chunkNbt.setInteger("x", pair.chunkXPos);
-                           chunkNbt.setInteger("z", pair.chunkZPos);
-                           ((IModifiableChunk) ch).writeToNBT(chunkNbt);
-                           chunks.appendTag(chunkNbt);
-                       }
-                   } catch (Exception e) {
-                       FMLLog.getLogger().error(e.getMessage());
-                   }
-                }
-            }
-        }
-        nbt.setTag("chunks", chunks);
+        WorldNBT.writeToNBTWorld(virtualWorld$nbtChunks, nbt, this);
     }
 }

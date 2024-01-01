@@ -36,12 +36,16 @@ class FindVeinsPacket(
     private fun addComponent(idComponent: Int, type: Int) {
         when (type) {
             TYPE_ORES -> VirtualAPI.getRegisterOres().find { it.id == idComponent }?.let {
-                ores[it.name] = it.color
-                metaMap[idComponent.toShort()] = it.name
+                if (!it.isHidden) {
+                    ores[it.name] = it.color
+                    metaMap[idComponent.toShort()] = it.name
+                }
             }
             TYPE_FLUIDS -> VirtualAPI.getRegisterFluids().find { it.id == idComponent }?.let {
-                ores[it.name] = it.color
-                metaMap[idComponent.toShort()] = it.name
+                if (!it.isHidden) {
+                    ores[it.name] = it.color
+                    metaMap[idComponent.toShort()] = it.name
+                }
             }
         }
     }

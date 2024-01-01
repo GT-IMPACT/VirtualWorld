@@ -5,23 +5,21 @@ import codechicken.nei.PositionedStack
 import codechicken.nei.recipe.*
 import cpw.mods.fml.common.event.FMLInterModComms
 import net.minecraft.init.Blocks
-import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidStack
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
-import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.addon.nei.NEIBoostrapConfig
 import space.gtimpact.virtual_world.addon.nei.other.FixedPositionedStack
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualFluidVein
-import space.gtimpact.virtual_world.api.VirtualOreVein
 import space.gtimpact.virtual_world.api.virtualWorldNeiFluidHandler
 import space.gtimpact.virtual_world.extras.drawText
-import space.impact.impact_vw.ASSETS
-import space.impact.impact_vw.MODID
-import space.impact.impact_vw.MODNAME
+import space.gtimpact.virtual_world.ASSETS
+import space.gtimpact.virtual_world.MODID
+import space.gtimpact.virtual_world.MODNAME
+import space.gtimpact.virtual_world.VirtualOres
 import java.awt.Color
 import java.awt.Rectangle
 
@@ -92,7 +90,7 @@ class NeiFluidDimensionsHandler : TemplateRecipeHandler() {
         drawText(4, 0, "Show All", Color(84, 81, 81).hashCode())
         drawText(4, 10, "Dim Name: ${ore.first}", clr);
 
-        drawText(164 - GuiDraw.fontRenderer.getStringWidth("Use Shift"), 0, "Use Shift", Color(84, 81, 81).hashCode())
+        drawText(164 - GuiDraw.getStringWidth("Use Shift"), 0, "Use Shift", Color(84, 81, 81).hashCode())
         val oreVeins = mutableListOf<String>()
 
         ore.second.take(29).forEach { virtualOreVein ->

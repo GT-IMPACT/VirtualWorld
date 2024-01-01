@@ -190,3 +190,7 @@ fun Chunk.extractFluidFormVein(amount: Int): FluidVeinCount? {
     }
     return veinCount
 }
+
+fun IModifiableChunk.hasGenerate(): Boolean {
+    return getNbt(NBT.ORE_LAYER_0) == null && getNbt(NBT.ORE_LAYER_1) == null && getNbt(NBT.FLUID_LAYER) == null
+}

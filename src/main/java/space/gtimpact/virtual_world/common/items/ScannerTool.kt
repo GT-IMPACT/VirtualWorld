@@ -25,7 +25,7 @@ import space.gtimpact.virtual_world.extras.send
 import space.gtimpact.virtual_world.extras.toTranslate
 import space.gtimpact.virtual_world.network.ChangeLayerScannerPacket
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
-import space.impact.impact_vw.ASSETS
+import space.gtimpact.virtual_world.ASSETS
 
 class ScannerTool : Item() {
 
@@ -41,8 +41,8 @@ class ScannerTool : Item() {
         if (Keyboard.isKeyDown(Keyboard.KEY_RMENU) || Keyboard.isKeyDown(Keyboard.KEY_LMENU) ||
             Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)
         ) {
-            entityPlayer.heldItem?.let {
-                (it.item as? ScannerTool)?.let {
+            entityPlayer.heldItem?.also {
+                (it.item as? ScannerTool)?.also {
                     if (event.dwheel != 0) {
                         VirtualOresNetwork.sendToServer(
                             ChangeLayerScannerPacket(
@@ -108,7 +108,7 @@ class ScannerTool : Item() {
     override fun addInformation(
         stack: ItemStack,
         player: EntityPlayer,
-        tooltip: MutableList<Any?>,
+        tooltip: MutableList<String?>,
         f3: Boolean
     ) {
         val mode = stack.getNBTInt(NBT_TYPE)
@@ -159,7 +159,7 @@ class ScannerTool : Item() {
                 return super.onItemRightClick(stack, world, player)
             }
 
-            val radius = 11
+            val radius = 15
 
             when (type) {
                 TYPE_ORES -> scanOres(world, layer, player as EntityPlayerMP, radius)

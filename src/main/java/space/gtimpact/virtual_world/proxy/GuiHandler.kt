@@ -1,4 +1,4 @@
-package space.gtimpact.virtual_world.client
+package space.gtimpact.virtual_world.proxy
 
 import cpw.mods.fml.common.network.IGuiHandler
 import cpw.mods.fml.common.network.NetworkRegistry
