@@ -1,8 +1,6 @@
 plugins {
     alias(libs.plugins.buildconfig)
-    groovy
     id("minecraft")
-    id("publish")
 }
 
 repositories {
@@ -12,24 +10,16 @@ repositories {
     mavenLocal()
 }
 
-val modId: String by extra
-val modName: String by extra
-val modGroup: String by extra
-val modAssets: String by extra
-
-buildConfig {
-    packageName("space.impact.$modId")
-    buildConfigField("String", "MODID", "\"${modId}\"")
-    buildConfigField("String", "MODNAME", "\"${modName}\"")
-    buildConfigField("String", "VERSION", "\"${project.version}\"")
-    buildConfigField("String", "GROUPNAME", "\"${modGroup}\"")
-    buildConfigField("String", "ASSETS", "\"${modAssets}\"")
-    useKotlinOutput { topLevelConstants = true }
-}
 
 dependencies {
-    implementation("com.github.GTNewHorizons:NotEnoughItems:2.3.53-GTNH:dev")
+    implementation("com.github.GTNewHorizons:CodeChickenLib:1.1.10:dev")
+    implementation("com.github.GTNewHorizons:CodeChickenCore:1.1.13:dev")
+    implementation("com.github.GTNewHorizons:NotEnoughItems:2.4.13-GTNH:dev")
     api("space.impact:forgelin:2.0.+") { isChanging = true }
 }
 
-apply(from = "runConf.gradle")
+val modId: String by extra
+
+tasks.runClient.configure {
+    extraArgs.addAll("--mixin", "mixins.$modId.json")
+}
