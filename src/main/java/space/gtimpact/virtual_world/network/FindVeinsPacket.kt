@@ -2,15 +2,16 @@ package space.gtimpact.virtual_world.network
 
 import com.google.common.io.ByteArrayDataInput
 import com.google.common.io.ByteStreams
+import net.minecraft.world.ChunkCoordIntPair
 import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.client.gui.ScannerGui
 import space.gtimpact.virtual_world.client.gui.widgets.RenderMapTexture
 import space.gtimpact.virtual_world.common.items.ScannerTool.Companion.TYPE_FLUIDS
 import space.gtimpact.virtual_world.common.items.ScannerTool.Companion.TYPE_ORES
+import space.gtimpact.virtual_world.util.Math.repeatOffset
 
-typealias BlockCoordinates = Pair<Int, Int>
-typealias RenderMap = HashMap<BlockCoordinates, RenderComponent>
+typealias RenderMap = HashMap<ChunkCoordIntPair, RenderComponent?>
 
 data class RenderComponent(
     val idComponent: Int,
@@ -18,30 +19,31 @@ data class RenderComponent(
 )
 
 class FindVeinsPacket(
+    val dimId: Int = 0,
     val chunkX: Int = 0,
     val chunkZ: Int = 0,
     val centerX: Int = 0,
     val centerZ: Int = 0,
     val radius: Int = 0,
     val type: Int = 0,
+    val layer: Int = 0,
 ) : IPacket {
-
 
     val map: RenderMap = RenderMap()
 
     val ores: HashMap<String, Int> = HashMap()
     val metaMap: HashMap<Short, String> = HashMap()
-    var level = -1
 
     private fun addComponent(idComponent: Int, type: Int) {
         when (type) {
-            TYPE_ORES -> VirtualAPI.getRegisterOres().find { it.id == idComponent }?.let {
+            TYPE_ORES -> VirtualAPI.getRegisterOres().find { it.id == idComponent }?.also {
                 if (!it.isHidden) {
                     ores[it.name] = it.color
                     metaMap[idComponent.toShort()] = it.name
                 }
             }
-            TYPE_FLUIDS -> VirtualAPI.getRegisterFluids().find { it.id == idComponent }?.let {
+
+            TYPE_FLUIDS -> VirtualAPI.getRegisterFluids().find { it.id == idComponent }?.also {
                 if (!it.isHidden) {
                     ores[it.name] = it.color
                     metaMap[idComponent.toShort()] = it.name
@@ -51,7 +53,7 @@ class FindVeinsPacket(
     }
 
     fun addRenderComponent(chX: Int, chZ: Int, idComponent: Int, amount: Int) {
-        val chunk = BlockCoordinates(
+        val chunk = ChunkCoordIntPair(
             chX - (chunkX - radius) * 16,
             chZ - (chunkZ - radius) * 16,
         )
@@ -66,30 +68,32 @@ class FindVeinsPacket(
     @Suppress("UnstableApiUsage")
     override fun encode(): ByteArray {
         val out = ByteStreams.newDataOutput(1)
+        out.writeByte(dimId)
         out.writeInt(chunkX)
         out.writeInt(chunkZ)
         out.writeInt(centerX)
         out.writeInt(centerZ)
-        out.writeInt(radius)
-        out.writeInt(type)
-        out.writeInt(level)
+        out.writeByte(radius)
+        out.writeByte(type)
+        out.writeByte(layer)
 
         val radius: Int = (radius * 2 + 1) * 16
 
-        for (x in 0 until radius) {
-            for (z in 0 until radius) {
-                val coordinates = BlockCoordinates(x, z)
+        repeatOffset(0, radius - 1, 16) { x ->
+            repeatOffset(0, radius - 1, 16) { z ->
+                val coordinates = ChunkCoordIntPair(x, z)
                 if (map[coordinates] == null) {
-                    out.writeInt(0) // idComponent
-                    out.writeInt(0) // amount
+                    out.writeShort(0) // idComponent
+                    out.writeByte(0) // amount
                 } else {
                     map[coordinates]?.apply {
-                        out.writeInt(idComponent)
-                        out.writeInt(amount)
+                        out.writeShort(idComponent)
+                        out.writeByte(amount)
                     }
                 }
             }
         }
+
         return out.toByteArray()
     }
 
@@ -100,25 +104,29 @@ class FindVeinsPacket(
 
     override fun decode(data: ByteArrayDataInput): IPacket {
         val packet = FindVeinsPacket(
+            dimId = data.readByte().toInt(),
             chunkX = data.readInt(),
             chunkZ = data.readInt(),
             centerX = data.readInt(),
             centerZ = data.readInt(),
-            radius = data.readInt(),
-            type = data.readInt()
+            radius = data.readByte().toInt(),
+            type = data.readByte().toInt(),
+            layer = data.readByte().toInt(),
         )
-        packet.level = data.readInt()
 
         val radius = (packet.radius * 2 + 1) * 16
 
-        for (x in 0 until radius) {
-            for (z in 0 until radius) {
-                val coordinates = BlockCoordinates(x, z)
-                val idComponent = data.readInt()
-                val amount = data.readInt()
+        repeatOffset(0, radius - 1, 16) { z ->
+            repeatOffset(0, radius - 1, 16) { x ->
+
+                val idComponent = data.readShort().toInt()
+                val amount = data.readByte().toInt()
                 val component = RenderComponent(idComponent, amount)
-                packet.map[coordinates] = component
+
+                val coord = ChunkCoordIntPair(x, z)
+                packet.map[coord] = component
                 packet.addComponent(idComponent, packet.type)
+
             }
         }
         return packet

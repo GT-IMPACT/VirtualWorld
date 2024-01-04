@@ -2,11 +2,12 @@ package space.gtimpact.virtual_world.client.gui
 
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.util.ResourceLocation
+import net.minecraft.world.ChunkCoordIntPair
+import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 import space.gtimpact.virtual_world.client.gui.widgets.RenderMapTexture
 import space.gtimpact.virtual_world.client.gui.widgets.VeinsGuiScrollingList
 import space.gtimpact.virtual_world.ASSETS
-import space.gtimpact.virtual_world.network.BlockCoordinates
 import java.awt.Color
 import kotlin.math.max
 import kotlin.math.min
@@ -16,6 +17,7 @@ class ScannerGui : GuiScreen() {
     companion object {
         const val GUI_ID = 1
         const val MIN_HEIGHT = 128
+        const val MAX_HEIGHT = 1024
         const val MIN_WIDTH = 128
         val BG = ResourceLocation(ASSETS, "textures/gui/bg.png")
         var map: RenderMapTexture? = null
@@ -110,10 +112,11 @@ class ScannerGui : GuiScreen() {
 
     private fun renderComponents(map: RenderMapTexture, aX: Int, aZ: Int) {
         val radius = (map.packet.radius * 2 + 1) * 16
-        for (x in 0 until radius) {
-            for (z in 0 until radius) {
-                if (x % 16 == 0 && z % 16 == 0) {
-                    val coordinates = BlockCoordinates(x, z)
+        for (z in 0 until radius) {
+            for (x in 0 until radius) {
+
+                if (x % 16 == 0 && z % 16 == 0 && !Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
+                    val coordinates = ChunkCoordIntPair(x, z)
                     map.packet.map[coordinates]?.apply {
                         if (amount <= 0) return@apply
                         val name = map.packet.metaMap[idComponent.toShort()] ?: "ERROR"

@@ -3,7 +3,9 @@ package space.gtimpact.virtual_world
 import cpw.mods.fml.common.Mod
 import cpw.mods.fml.common.SidedProxy
 import cpw.mods.fml.common.event.*
+import net.minecraft.init.Blocks
 import net.minecraft.init.Items
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fluids.FluidRegistry
 import space.gtimpact.virtual_world.api.VirtualFluidTypeComponent
@@ -12,6 +14,7 @@ import space.gtimpact.virtual_world.api.VirtualOreComponent
 import space.gtimpact.virtual_world.api.VirtualOreVein
 import space.gtimpact.virtual_world.proxy.GuiHandler
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
+import space.gtimpact.virtual_world.network.registerPackets
 import space.gtimpact.virtual_world.proxy.CommonProxy
 import java.awt.Color
 import java.util.*
@@ -26,6 +29,10 @@ import kotlin.random.Random
     dependencies = "required-after:forgelin;"
 )
 object VirtualOres {
+
+    init {
+        registerPackets()
+    }
 
     @SidedProxy(clientSide = "$GROUPNAME.proxy.ClientProxy", serverSide = "$GROUPNAME.proxy.CommonProxy")
     lateinit var proxy: CommonProxy
@@ -54,7 +61,7 @@ object VirtualOres {
             VirtualOreVein(
                 id = it,
                 layer = if (it % 2 == 0) 1 else 0,
-                name = if (it == 0) "Empty" else "$it Ore",
+                name = if (it == 0) "Empty" else "$it Ore ${if (it % 2 == 0) "L1" else "L0"}",
                 weight = Random.nextDouble(10.0, 30.0),
                 rangeSize = 50..300,
                 color = if (it == 0) Color.GREEN.hashCode() else UUID.randomUUID().hashCode(),
@@ -64,6 +71,24 @@ object VirtualOres {
                 isHidden = it == 0
             )
         }
+
+        VirtualOreVein(
+            id = 1000,
+            layer = 0,
+            name = "Test Virtual Ore",
+            weight = Random.nextDouble(10.0, 30.0),
+            rangeSize = 50..300,
+            color = Color.GREEN.hashCode(),
+            dimensions = listOf(0 to "Earth", -1 to "Nether", 1 to "End"),
+            ores = listOf(
+                VirtualOreComponent(ItemStack(Items.iron_ingot), 0),
+                VirtualOreComponent(ItemStack(Items.gold_ingot), 0),
+                VirtualOreComponent(ItemStack(Items.diamond), 0),
+                VirtualOreComponent(ItemStack(Item.getItemFromBlock(Blocks.stone)), 0)
+            ),
+            special = null,
+            isHidden = false
+        )
 
         VirtualFluidVein(
             id = 0,

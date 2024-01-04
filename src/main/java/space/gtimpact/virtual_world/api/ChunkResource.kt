@@ -9,6 +9,8 @@ import space.gtimpact.virtual_world.api.VirtualAPI.getVirtualFluidVeinById
 import space.gtimpact.virtual_world.api.VirtualAPI.getVirtualOreVeinById
 import space.gtimpact.virtual_world.common.world.IModifiableChunk
 import space.gtimpact.virtual_world.extras.NBT
+import kotlin.math.max
+import kotlin.math.min
 
 data class OreVeinCount(
     val vein: VirtualOreVein,
@@ -109,14 +111,14 @@ fun Chunk.extractOreFromChunk(layer: Int, amount: Int): OreVeinCount? {
     return when (layer) {
         0 -> {
             val layer0 = getOreLayer0() ?: return null
-            val newSize = layer0.size - amount
+            val newSize = max(0, layer0.size - amount)
             saveOreLayer0(layer0.vein.id, newSize)
             OreVeinCount(layer0.vein, newSize)
         }
 
         1 -> {
             val layer1 = getOreLayer1() ?: return null
-            val newSize = layer1.size - amount
+            val newSize = max(0, layer1.size - amount)
             saveOreLayer1(layer1.vein.id, newSize)
             OreVeinCount(layer1.vein, newSize)
         }
@@ -141,7 +143,7 @@ fun Chunk.extractOreFormVein(layer: Int, amount: Int): OreVeinCount? {
     val veinCount = veins.firstOrNull()?.let { vein ->
         OreVeinCount(
             vein = vein.vein,
-            size = veins.sumOf { it.size } - veins.size * amount
+            size =  max(0, veins.sumOf { it.size } - veins.size * amount)
         )
     }
 

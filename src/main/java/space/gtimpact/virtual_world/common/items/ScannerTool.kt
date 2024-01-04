@@ -26,6 +26,7 @@ import space.gtimpact.virtual_world.extras.toTranslate
 import space.gtimpact.virtual_world.network.ChangeLayerScannerPacket
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
 import space.gtimpact.virtual_world.ASSETS
+import space.gtimpact.virtual_world.api.extractOreFromChunk
 
 class ScannerTool : Item() {
 
@@ -131,7 +132,7 @@ class ScannerTool : Item() {
     }
 
     init {
-        setMaxStackSize(1)
+//        setMaxStackSize(1) //TODO
         unlocalizedName = "virtual_ore_scanner"
         if (!IS_DISABLED_SCANNER_TOOL) {
             GameRegistry.registerItem(this, "virtual_ore_scanner")
@@ -140,30 +141,41 @@ class ScannerTool : Item() {
 
     override fun onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack? {
         if (!world.isRemote) {
+            when (stack.stackSize) {
 
-            var type = stack.getNBTInt(NBT_TYPE)
-            val layer = if (type == TYPE_ORES) stack.getNBTInt(NBT_LAYER) else 0
-
-            if (player.isSneaking) {
-                type++
-
-                if (type >= TYPES_COUNT) {
-                    type = 0
+                in 2..64 -> if (player.capabilities.isCreativeMode) {
+                    val chunk = world.getChunkFromBlockCoords(player.posX.toInt(), player.posZ.toInt())
+                    chunk.extractOreFromChunk(1, 1000 * stack.stackSize)?.also { data ->
+                        player.send("${data.vein}: ${data.size}")
+                    }
                 }
 
-                when (type) {
-                    TYPE_ORES -> player.send("scanner.change_mode.0".toTranslate()) //Set mod: Underground Ores
-                    TYPE_FLUIDS -> player.send("scanner.change_mode.1".toTranslate()) //Set mod: Underground Fluids
+                else -> {
+                    var type = stack.getNBTInt(NBT_TYPE)
+                    val layer = if (type == TYPE_ORES) stack.getNBTInt(NBT_LAYER) else 0
+
+                    if (player.isSneaking) {
+                        type++
+
+                        if (type >= TYPES_COUNT) {
+                            type = 0
+                        }
+
+                        when (type) {
+                            TYPE_ORES -> player.send("scanner.change_mode.0".toTranslate()) //Set mod: Underground Ores
+                            TYPE_FLUIDS -> player.send("scanner.change_mode.1".toTranslate()) //Set mod: Underground Fluids
+                        }
+                        stack.setNBT(type, NBT_TYPE)
+                        return super.onItemRightClick(stack, world, player)
+                    }
+
+                    val radius = 20
+
+                    when (type) {
+                        TYPE_ORES -> scanOres(world, layer, player as EntityPlayerMP, radius)
+                        TYPE_FLUIDS -> scanFluids(world, player as EntityPlayerMP, radius)
+                    }
                 }
-                stack.setNBT(type, NBT_TYPE)
-                return super.onItemRightClick(stack, world, player)
-            }
-
-            val radius = 15
-
-            when (type) {
-                TYPE_ORES -> scanOres(world, layer, player as EntityPlayerMP, radius)
-                TYPE_FLUIDS -> scanFluids(world, player as EntityPlayerMP, radius)
             }
         }
         return super.onItemRightClick(stack, world, player)

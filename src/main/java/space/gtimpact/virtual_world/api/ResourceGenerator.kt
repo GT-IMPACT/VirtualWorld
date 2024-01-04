@@ -14,11 +14,11 @@ import kotlin.random.Random
 
 object ResourceGenerator {
 
-    private const val SHIFT_REGION_FROM_CHUNK = 5
-    private const val SHIFT_VEIN_FROM_REGION = 3
-    private const val SHIFT_CHUNK_FROM_VEIN = 2
-    private const val CHUNK_COUNT_IN_VEIN_COORDINATE = 4
-    private const val VEIN_COUNT_IN_REGIN_COORDINATE = 8
+    internal const val SHIFT_REGION_FROM_CHUNK = 5
+    internal const val SHIFT_VEIN_FROM_REGION = 3
+    internal const val SHIFT_CHUNK_FROM_VEIN = 2
+    internal const val CHUNK_COUNT_IN_VEIN_COORDINATE = 4
+    internal const val VEIN_COUNT_IN_REGIN_COORDINATE = 8
 
     fun Chunk.generateResources() {
 
