@@ -43,11 +43,13 @@ object VirtualOresNetwork : MessageToMessageCodec<FMLProxyPacket, IPacket>() {
         out.add(mSubChannel[data.readByte().toInt()].decode(data))
     }
 
-    fun sendToPlayer(msg: IPacket, player: EntityPlayerMP) {
-        mChannel[Side.SERVER]?.apply {
-            attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.PLAYER)
-            attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(player)
-            writeAndFlush(msg)
+    fun sendToPlayer(msg: IPacket, player: EntityPlayer) {
+        if (player is EntityPlayerMP) {
+            mChannel[Side.SERVER]?.apply {
+                attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.PLAYER)
+                attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(player)
+                writeAndFlush(msg)
+            }
         }
     }
 

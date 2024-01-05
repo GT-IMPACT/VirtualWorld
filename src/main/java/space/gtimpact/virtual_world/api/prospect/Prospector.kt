@@ -1,6 +1,6 @@
 package space.gtimpact.virtual_world.api.prospect
 
-import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
 import space.gtimpact.virtual_world.addon.visual_prospecting.ProspectorVeinManager
@@ -15,7 +15,8 @@ import space.gtimpact.virtual_world.network.VirtualOresNetwork
 import space.gtimpact.virtual_world.network.prospectorPacketFluid
 import space.gtimpact.virtual_world.network.sendPacket
 
-fun scanOres(w: World, layer: Int, player: EntityPlayerMP, radius: Int) {
+@JvmOverloads
+fun scanOres(w: World, layer: Int, player: EntityPlayer, radius: Int, needShowGui: Boolean = true) {
 
     val chX = player.posX.toInt() shr 4
     val chZ = player.posZ.toInt() shr 4
@@ -31,16 +32,19 @@ fun scanOres(w: World, layer: Int, player: EntityPlayerMP, radius: Int) {
                 val veinPos = scanOreChunk(chunk, layer)
                 if (veinPos != null) {
                     chunksRes += veinPos
-                    fillPacketForChunk(chunk, packet, veinPos.vein.id, veinPos.size)
+                    if (needShowGui)
+                        fillPacketForChunk(chunk, packet, veinPos.vein.id, veinPos.size)
                 }
             }
         }
     }
 
-//    VirtualOresNetwork.sendToPlayer(packet, player)
+    if (needShowGui)
+        VirtualOresNetwork.sendToPlayer(packet, player)
 
     ProspectorVeinManager.createArea(chunksRes, w.getChunkFromChunkCoords(chX, chZ), player, layer)
 }
+
 
 private fun scanOreChunk(chunk: Chunk, layer: Int): VirtualOreVeinPosition? {
     val count = when (layer) {
@@ -60,7 +64,8 @@ private fun scanOreChunk(chunk: Chunk, layer: Int): VirtualOreVeinPosition? {
     } else null
 }
 
-fun scanFluids(w: World, player: EntityPlayerMP, radius: Int) {
+@JvmOverloads
+fun scanFluids(w: World, player: EntityPlayer, radius: Int, needShowGui: Boolean = true) {
 
     val chX = player.posX.toInt() shr 4
     val chZ = player.posZ.toInt() shr 4
@@ -82,8 +87,8 @@ fun scanFluids(w: World, player: EntityPlayerMP, radius: Int) {
     for (chunk in chunks)
         scanFluidChunk(chunk, packet)?.also { list += it }
 
-
-    VirtualOresNetwork.sendToPlayer(packet, player)
+    if (needShowGui)
+        VirtualOresNetwork.sendToPlayer(packet, player)
 
     val listInts = arrayListOf<Int>()
 
