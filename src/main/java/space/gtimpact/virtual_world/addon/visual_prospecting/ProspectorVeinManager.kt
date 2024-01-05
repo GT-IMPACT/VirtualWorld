@@ -5,13 +5,10 @@ import com.google.common.io.ByteArrayDataOutput
 import com.google.common.io.ByteStreams
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.world.chunk.Chunk
-import space.gtimpact.virtual_world.api.RegionRes
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.*
 import space.gtimpact.virtual_world.api.ResourceGenerator
-import space.gtimpact.virtual_world.api.VirtualOreVein
-import space.gtimpact.virtual_world.api.ores.ChunkOre
-import space.gtimpact.virtual_world.api.ores.VeinOre
 import space.gtimpact.virtual_world.network.prospectorPacketOre
-import space.impact.packet_network.network.NetworkHandler.sendToPlayer
+import space.gtimpact.virtual_world.network.sendPacket
 
 object ProspectorVeinManager {
 
@@ -22,12 +19,12 @@ object ProspectorVeinManager {
         }.filter {
             it.value.size == 16
         }.map { (pair, chunks) ->
-            PacketDataOreVein(
+            CacheOreVein(
                 x = pair.first,
                 z = pair.second,
                 veinId = chunks.first().vein.id,
                 chunks = chunks.map {
-                    PacketDataOreVeinChunk(
+                    CacheOreVeinChunk(
                         x = it.x,
                         z = it.z,
                         size = it.size,
@@ -35,7 +32,7 @@ object ProspectorVeinManager {
                 }
             )
         }.let {
-            PacketDataOreVeinList(layer, it)
+            CacheOreVeinList(layer, it)
         }
 
         @Suppress("UnstableApiUsage")
@@ -46,11 +43,11 @@ object ProspectorVeinManager {
         chunkGroup.veins.forEach { it.write(buf) }
 
         if (!current.worldObj.isRemote)
-            player.sendToPlayer(prospectorPacketOre.transaction(buf))
+            player.sendPacket(prospectorPacketOre.transaction(buf))
     }
 }
 
-fun PacketDataOreVein.write(buf: ByteArrayDataOutput) {
+fun CacheOreVein.write(buf: ByteArrayDataOutput) {
     buf.writeShort(veinId)
     buf.writeInt(x)
     buf.writeInt(z)
@@ -62,16 +59,16 @@ fun PacketDataOreVein.write(buf: ByteArrayDataOutput) {
     }
 }
 
-fun ByteArrayDataInput.readPacketDataOreVein(): PacketDataOreVeinList {
-    return PacketDataOreVeinList(
+fun ByteArrayDataInput.readPacketDataOreVein(): CacheOreVeinList {
+    return CacheOreVeinList(
         layer = readByte().toInt(),
         veins = Array(readShort().toInt()) {
-            PacketDataOreVein(
+            CacheOreVein(
                 veinId = readShort().toInt(),
                 x = readInt(),
                 z = readInt(),
                 chunks = Array(readShort().toInt()) {
-                    PacketDataOreVeinChunk(
+                    CacheOreVeinChunk(
                         x = readInt(),
                         z = readInt(),
                         size = readByte().toInt(),
@@ -81,24 +78,3 @@ fun ByteArrayDataInput.readPacketDataOreVein(): PacketDataOreVeinList {
         }.toList()
     )
 }
-
-data class PacketDataOreVeinList(
-    val layer: Int, //byte (0..1)
-    val veins: List<PacketDataOreVein>
-)
-
-data class PacketDataOreVein(
-    val veinId: Int, //short
-    val x: Int,
-    val z: Int,
-    val chunks: List<PacketDataOreVeinChunk>,
-) {
-    var dimension: Int = 0
-    var vein: VirtualOreVein? = null
-}
-
-data class PacketDataOreVeinChunk(
-    val x: Int,
-    val z: Int,
-    val size: Int, //byte (percent 0..100)
-)

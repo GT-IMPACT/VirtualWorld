@@ -27,6 +27,7 @@ import space.gtimpact.virtual_world.network.ChangeLayerScannerPacket
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
 import space.gtimpact.virtual_world.ASSETS
 import space.gtimpact.virtual_world.api.extractOreFromChunk
+import space.gtimpact.virtual_world.config.Config
 
 class ScannerTool : Item() {
 
@@ -129,10 +130,13 @@ class ScannerTool : Item() {
         }
         // To scan the area use Right Click
         tooltip += "scanner.tooltip.5".toTranslate()
+
+        if (Config.enableDebug)
+            tooltip += "2..64 stackSize extract current chunk stackSize * 1000"
     }
 
     init {
-//        setMaxStackSize(1) //TODO
+        if (!Config.enableDebug) setMaxStackSize(1)
         unlocalizedName = "virtual_ore_scanner"
         if (!IS_DISABLED_SCANNER_TOOL) {
             GameRegistry.registerItem(this, "virtual_ore_scanner")
@@ -143,7 +147,8 @@ class ScannerTool : Item() {
         if (!world.isRemote) {
             when (stack.stackSize) {
 
-                in 2..64 -> if (player.capabilities.isCreativeMode) {
+                //for debug
+                in 2..64 -> if (Config.enableDebug && player.capabilities.isCreativeMode) {
                     val chunk = world.getChunkFromBlockCoords(player.posX.toInt(), player.posZ.toInt())
                     chunk.extractOreFromChunk(1, 1000 * stack.stackSize)?.also { data ->
                         player.send("${data.vein}: ${data.size}")

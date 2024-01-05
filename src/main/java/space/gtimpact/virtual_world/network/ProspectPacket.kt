@@ -2,33 +2,12 @@ package space.gtimpact.virtual_world.network
 
 import net.minecraft.server.MinecraftServer
 import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualFluidVeinPosition
-import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualOreVeinPosition
 import space.gtimpact.virtual_world.addon.visual_prospecting.cache.ClientVirtualWorldCache
 import space.gtimpact.virtual_world.addon.visual_prospecting.readPacketDataOreVein
 import space.gtimpact.virtual_world.api.VirtualAPI
-import space.impact.packet_network.network.MinecraftSide
 import space.impact.packet_network.network.packets.createPacketStream
-import space.impact.packet_network.network.registerPacket
-
-fun registerPackets() {
-    registerPacket(prospectorPacketFluid)
-    registerPacket(prospectorPacketOre)
-    registerPacket(notifyClientSavePacket)
-}
-
-val notifyClientSavePacket = createPacketStream(2002) { isServer, data ->
-    if (!isServer) {
-        val isSave = data.readBoolean()
-        val worldName = MinecraftServer.getServer().worldName
-        if (isSave)
-            ClientVirtualWorldCache.saveCache(worldName)
-        else
-            ClientVirtualWorldCache.loadVeinCache(worldName)
-    }
-}
 
 val prospectorPacketFluid = createPacketStream(2000) { isServer, read ->
-
     if (!isServer) {
         read.readInt()
         val count = read.readInt()
@@ -55,11 +34,8 @@ val prospectorPacketFluid = createPacketStream(2000) { isServer, read ->
 }
 
 val prospectorPacketOre = createPacketStream(2001) { isServer, read ->
-
     if (!isServer) {
-
         val scan = read.readPacketDataOreVein()
-
         scan.veins.forEach { data ->
             VirtualAPI.getRegisterOres().find { it.id == data.veinId }?.also {
                 ClientVirtualWorldCache.putOre(scan.layer, data.apply {
@@ -68,5 +44,16 @@ val prospectorPacketOre = createPacketStream(2001) { isServer, read ->
                 })
             }
         }
+    }
+}
+
+val notifyClientSavePacket = createPacketStream(2002) { isServer, data ->
+    if (!isServer) {
+        val isSave = data.readBoolean()
+        val worldName = MinecraftServer.getServer().worldName
+        if (isSave)
+            ClientVirtualWorldCache.saveCache(worldName)
+        else
+            ClientVirtualWorldCache.loadVeinCache(worldName)
     }
 }

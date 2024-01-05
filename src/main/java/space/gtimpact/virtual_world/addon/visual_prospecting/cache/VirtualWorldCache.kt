@@ -3,7 +3,6 @@ package space.gtimpact.virtual_world.addon.visual_prospecting.cache
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import space.gtimpact.virtual_world.addon.visual_prospecting.DimensionCache
-import space.gtimpact.virtual_world.addon.visual_prospecting.PacketDataOreVein
 import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualFluidVeinPosition
 import java.io.File
 
@@ -90,7 +89,7 @@ abstract class VirtualWorldCache {
     }
 
 
-    fun putOre(layer: Int, veinPosition: PacketDataOreVein) {
+    fun putOre(layer: Int, veinPosition: CacheOreVein) {
         var dimension = dimensions[veinPosition.dimension]
 
         if (dimension == null) {
@@ -101,7 +100,7 @@ abstract class VirtualWorldCache {
         dimension.putOre(layer, veinPosition)
     }
 
-    fun getOre(layer: Int, dimId: Int, x: Int, z: Int): PacketDataOreVein? {
+    fun getOre(layer: Int, dimId: Int, x: Int, z: Int): CacheOreVein? {
         return dimensions[dimId]?.getOreVein(layer, x, z)
     }
 

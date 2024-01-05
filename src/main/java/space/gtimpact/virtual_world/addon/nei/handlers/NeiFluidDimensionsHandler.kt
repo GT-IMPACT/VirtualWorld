@@ -5,6 +5,7 @@ import codechicken.nei.PositionedStack
 import codechicken.nei.recipe.*
 import cpw.mods.fml.common.event.FMLInterModComms
 import net.minecraft.init.Blocks
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidStack

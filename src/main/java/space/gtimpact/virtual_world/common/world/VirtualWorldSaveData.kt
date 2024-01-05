@@ -2,8 +2,6 @@ package space.gtimpact.virtual_world.common.world
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.World
@@ -12,7 +10,7 @@ import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.event.world.WorldEvent
 import space.gtimpact.virtual_world.extras.NBT
 import space.gtimpact.virtual_world.network.notifyClientSavePacket
-import space.impact.packet_network.network.NetworkHandler.sendToPlayer
+import space.gtimpact.virtual_world.network.sendPacket
 
 class VirtualWorldSaveData(name: String) : WorldSavedData(name) {
     constructor() : this(DATA_NAME)
@@ -20,7 +18,7 @@ class VirtualWorldSaveData(name: String) : WorldSavedData(name) {
     @Suppress("unused")
     @SubscribeEvent
     fun onPlayerLogged(e: PlayerEvent.PlayerLoggedInEvent) {
-        e.player.sendToPlayer(notifyClientSavePacket.transaction(false))
+        e.player.sendPacket(notifyClientSavePacket.transaction(false))
     }
 
     @Suppress("unused")
@@ -37,7 +35,7 @@ class VirtualWorldSaveData(name: String) : WorldSavedData(name) {
             getInstance(e.world).markDirty()
             if (e.world.provider.dimensionId == 0) {
                 MinecraftServer.getServer().configurationManager.playerEntityList.forEach {
-                    (it as? EntityPlayer)?.sendToPlayer(notifyClientSavePacket.transaction(true))
+                    it.sendPacket(notifyClientSavePacket.transaction(true))
                 }
             }
         }

@@ -7,11 +7,9 @@ import net.minecraft.client.resources.IResourceManager
 import net.minecraft.world.ChunkCoordIntPair
 import org.lwjgl.opengl.GL11
 import space.gtimpact.virtual_world.network.FindVeinsPacket
-import space.gtimpact.virtual_world.util.Math
 import space.gtimpact.virtual_world.util.Math.repeatOffset
 import java.awt.Color
 import java.awt.image.BufferedImage
-import kotlin.math.min
 
 class RenderMapTexture(
     val packet: FindVeinsPacket

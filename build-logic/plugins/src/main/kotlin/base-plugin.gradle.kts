@@ -93,7 +93,6 @@ java {
         vendor.set(JvmVendorSpec.AZUL)
     }
     withSourcesJar()
-    withJavadocJar()
 }
 
 tasks.processResources.configure {

@@ -5,6 +5,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.sinthoras.visualprospecting.Utils
 import net.minecraft.world.ChunkCoordIntPair
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.*
 import space.gtimpact.virtual_world.api.ResourceGenerator
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualFluidVein
@@ -12,8 +13,8 @@ import space.gtimpact.virtual_world.api.VirtualOreVein
 
 class DimensionCache(private val dimId: Int) {
 
-    private val oreChunksLayer0 = HashMap<ChunkCoordIntPair, PacketDataOreVein>()
-    private val oreChunksLayer1 = HashMap<ChunkCoordIntPair, PacketDataOreVein>()
+    private val oreChunksLayer0 = HashMap<ChunkCoordIntPair, CacheOreVein>()
+    private val oreChunksLayer1 = HashMap<ChunkCoordIntPair, CacheOreVein>()
     private val fluidChunks = HashMap<ChunkCoordIntPair, VirtualFluidVeinPosition>()
 
     fun saveOreChunksLayer0(): JsonElement {
@@ -119,13 +120,13 @@ class DimensionCache(private val dimId: Int) {
                 val veinId = chunk.asJsonObject.getAsJsonPrimitive("veinId").asInt
 
                 val chunkss = chunk.asJsonObject.getAsJsonArray("chunks").map {
-                    PacketDataOreVeinChunk(x = 0, z = 0, size = it.asJsonObject.getAsJsonPrimitive("size").asInt)
+                    CacheOreVeinChunk(x = 0, z = 0, size = it.asJsonObject.getAsJsonPrimitive("size").asInt)
                 }
 
                 ChunkCoordIntPair(
                     chunkXPos,
                     chunkZPos,
-                ) to PacketDataOreVein(
+                ) to CacheOreVein(
                     veinId = veinId,
                     x = dataX,
                     z = dataZ,
@@ -147,13 +148,13 @@ class DimensionCache(private val dimId: Int) {
                 val veinId = chunk.asJsonObject.getAsJsonPrimitive("veinId").asInt
 
                 val chunkss = chunk.asJsonObject.getAsJsonArray("chunks").map {
-                    PacketDataOreVeinChunk(x = 0, z = 0, size = it.asJsonObject.getAsJsonPrimitive("size").asInt)
+                    CacheOreVeinChunk(x = 0, z = 0, size = it.asJsonObject.getAsJsonPrimitive("size").asInt)
                 }
 
                 ChunkCoordIntPair(
                     chunkXPos,
                     chunkZPos,
-                ) to PacketDataOreVein(
+                ) to CacheOreVein(
                     veinId = veinId,
                     x = dataX,
                     z = dataZ,
@@ -194,7 +195,7 @@ class DimensionCache(private val dimId: Int) {
         return ChunkCoordIntPair(Utils.mapToCenterOreChunkCoord(chunkX), Utils.mapToCenterOreChunkCoord(chunkZ))
     }
 
-    fun putOre(layer: Int, veinPosition: PacketDataOreVein) {
+    fun putOre(layer: Int, veinPosition: CacheOreVein) {
         val key = getOreVeinKey(
             veinPosition.x shl ResourceGenerator.SHIFT_CHUNK_FROM_VEIN,
             veinPosition.z shl ResourceGenerator.SHIFT_CHUNK_FROM_VEIN,
@@ -205,7 +206,7 @@ class DimensionCache(private val dimId: Int) {
         }
     }
 
-    fun getOreVein(layer: Int, x: Int, z: Int): PacketDataOreVein? {
+    fun getOreVein(layer: Int, x: Int, z: Int): CacheOreVein? {
         val key = getOreVeinKey(x, z)
         return when (layer) {
             0 -> oreChunksLayer0[key]

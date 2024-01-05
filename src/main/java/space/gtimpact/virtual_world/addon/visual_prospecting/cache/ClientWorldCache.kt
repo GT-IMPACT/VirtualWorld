@@ -1,7 +1,5 @@
 package space.gtimpact.virtual_world.addon.visual_prospecting.cache
 
-import com.sinthoras.visualprospecting.Tags
-import com.sinthoras.visualprospecting.Utils
 import net.minecraft.client.Minecraft
 import java.io.File
 

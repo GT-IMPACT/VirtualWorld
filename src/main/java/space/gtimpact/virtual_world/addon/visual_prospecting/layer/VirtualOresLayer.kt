@@ -12,7 +12,7 @@ import journeymap.client.render.map.GridRenderer
 import net.minecraft.client.Minecraft
 import org.lwjgl.input.Keyboard.KEY_LSHIFT
 import org.lwjgl.input.Keyboard.isKeyDown
-import space.gtimpact.virtual_world.addon.visual_prospecting.PacketDataOreVein
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.*
 import space.gtimpact.virtual_world.addon.visual_prospecting.cache.ClientVirtualWorldCache
 import space.gtimpact.virtual_world.api.ResourceGenerator
 import space.gtimpact.virtual_world.util.Math.repeatOffset
@@ -87,7 +87,7 @@ class VirtualOresLayerRender(layerManager: LayerManager) : LayerRenderer(layerMa
 
 }
 
-class VirtualOresLocation(val pos: PacketDataOreVein) : ILocationProvider {
+class VirtualOresLocation(val pos: CacheOreVein) : ILocationProvider {
 
 
     override fun getDimensionId(): Int {
@@ -143,9 +143,10 @@ class VirtualOresDrawStep(private val location: VirtualOresLocation) : DrawStep 
             DrawUtil.drawRectangle(pixel.getX() + halfBlock, pixel.getY() + halfBlock, halfBlock, chunk, borderColor, borderAlpha)
 
             location.pos.chunks.chunked(4).forEachIndexed { row, list ->
-                list.forEachIndexed { col, data ->
 
-                    if (data.size <= 0) return@forEachIndexed
+                for ((col, data) in list.withIndex()) {
+
+                    if (data.size <= 0) continue
 
                     val x = pixel.getX() + row * blockSize * 16
                     val y = pixel.getY() + col * blockSize * 16

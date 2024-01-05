@@ -1,6 +1,5 @@
 package space.gtimpact.virtual_world.api.prospect
 
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
@@ -14,7 +13,7 @@ import space.gtimpact.virtual_world.common.items.ScannerTool
 import space.gtimpact.virtual_world.network.FindVeinsPacket
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
 import space.gtimpact.virtual_world.network.prospectorPacketFluid
-import space.impact.packet_network.network.NetworkHandler.sendToPlayer
+import space.gtimpact.virtual_world.network.sendPacket
 
 fun scanOres(w: World, layer: Int, player: EntityPlayerMP, radius: Int) {
 
@@ -38,7 +37,7 @@ fun scanOres(w: World, layer: Int, player: EntityPlayerMP, radius: Int) {
         }
     }
 
-    VirtualOresNetwork.sendToPlayer(packet, player)
+//    VirtualOresNetwork.sendToPlayer(packet, player)
 
     ProspectorVeinManager.createArea(chunksRes, w.getChunkFromChunkCoords(chX, chZ), player, layer)
 }
@@ -98,7 +97,7 @@ fun scanFluids(w: World, player: EntityPlayerMP, radius: Int) {
     }
 
     if (!w.isRemote)
-        (player as EntityPlayer).sendToPlayer(prospectorPacketFluid.transaction(*listInts.toIntArray()))
+        player.sendPacket(prospectorPacketFluid.transaction(*listInts.toIntArray()))
 }
 
 private fun scanFluidChunk(chunk: Chunk, packet: FindVeinsPacket): VirtualFluidVeinPosition? {

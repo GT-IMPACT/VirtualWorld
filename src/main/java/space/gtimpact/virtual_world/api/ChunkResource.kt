@@ -10,7 +10,6 @@ import space.gtimpact.virtual_world.api.VirtualAPI.getVirtualOreVeinById
 import space.gtimpact.virtual_world.common.world.IModifiableChunk
 import space.gtimpact.virtual_world.extras.NBT
 import kotlin.math.max
-import kotlin.math.min
 
 data class OreVeinCount(
     val vein: VirtualOreVein,
