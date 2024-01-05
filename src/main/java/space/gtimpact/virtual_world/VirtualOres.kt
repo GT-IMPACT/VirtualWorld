@@ -57,86 +57,86 @@ object VirtualOres {
     fun postInit(event: FMLPostInitializationEvent) {
         proxy.postInit(event)
 
-        (0..100).forEach {
-            VirtualOreVein(
-                id = it,
-                layer = if (it % 2 == 0) 1 else 0,
-                name = if (it == 0) "Empty" else "$it Ore ${if (it % 2 == 0) "L1" else "L0"}",
-                weight = Random.nextDouble(10.0, 30.0),
-                rangeSize = 50..300,
-                color = if (it == 0) Color.GREEN.hashCode() else UUID.randomUUID().hashCode(),
-                dimensions = listOf(0 to "Earth", -1 to "Nether", 1 to "End"),
-                ores = listOf(VirtualOreComponent(ItemStack(if (it % 2 == 0) Items.iron_ingot else Items.gold_ingot, 1), 0)),
-                special = null,
-                isHidden = it == 0
-            )
-        }
-
-        VirtualOreVein(
-            id = 1000,
-            layer = 0,
-            name = "Test Virtual Ore",
-            weight = Random.nextDouble(10.0, 30.0),
-            rangeSize = 50..300,
-            color = Color.GREEN.hashCode(),
-            dimensions = listOf(0 to "Earth", -1 to "Nether", 1 to "End"),
-            ores = listOf(
-                VirtualOreComponent(ItemStack(Items.iron_ingot), 0),
-                VirtualOreComponent(ItemStack(Items.gold_ingot), 0),
-                VirtualOreComponent(ItemStack(Items.diamond), 0),
-                VirtualOreComponent(ItemStack(Item.getItemFromBlock(Blocks.stone)), 0)
-            ),
-            special = null,
-            isHidden = false
-        )
-
-        VirtualFluidVein(
-            id = 0,
-            name = "Empty",
-            weight = 16.0,
-            rangeSize = 1..2,
-            color = Color.GREEN.hashCode(),
-            dimensions = listOf(),
-            fluid = VirtualFluidTypeComponent(FluidRegistry.LAVA, 0),
-            isHidden = true
-        )
-
-        VirtualFluidVein(
-            id = 1,
-            name = "Oil",
-            weight = 16.0,
-            rangeSize = 1..10,
-            color = Color.BLACK.hashCode(),
-            dimensions = listOf(0 to "Earth"),
-            fluid = VirtualFluidTypeComponent(FluidRegistry.LAVA, 50)
-        )
-        VirtualFluidVein(
-            id = 2,
-            name = "Heavy Oil",
-            weight = 16.0,
-            rangeSize = 1..10,
-            color = color(255, 0, 255),
-            dimensions = listOf(0 to "Earth"),
-            fluid = VirtualFluidTypeComponent(FluidRegistry.LAVA, 50)
-        )
-        VirtualFluidVein(
-            id = 3,
-            name = "Medium Oil",
-            weight = 16.0,
-            rangeSize = 1..10,
-            color = color(0, 255, 0),
-            dimensions = listOf(0 to "Earth"),
-            fluid = VirtualFluidTypeComponent(FluidRegistry.LAVA, 50)
-        )
-        VirtualFluidVein(
-            id = 4,
-            name = "Light Oil",
-            weight = 16.0,
-            rangeSize = 1..10,
-            color = color(255, 255, 0),
-            dimensions = listOf(0 to "Earth"),
-            fluid = VirtualFluidTypeComponent(FluidRegistry.LAVA, 50)
-        )
+//        (0..100).forEach {
+//            VirtualOreVein(
+//                id = it,
+//                layer = if (it % 2 == 0) 1 else 0,
+//                name = if (it == 0) "Empty" else "$it Ore ${if (it % 2 == 0) "L1" else "L0"}",
+//                weight = Random.nextDouble(10.0, 30.0),
+//                rangeSize = 50..300,
+//                color = if (it == 0) Color.GREEN.hashCode() else UUID.randomUUID().hashCode(),
+//                dimensions = listOf(0 to "Earth", -1 to "Nether", 1 to "End"),
+//                ores = listOf(VirtualOreComponent(ItemStack(if (it % 2 == 0) Items.iron_ingot else Items.gold_ingot, 1), 0)),
+//                special = null,
+//                isHidden = it == 0
+//            )
+//        }
+//
+//        VirtualOreVein(
+//            id = 1000,
+//            layer = 0,
+//            name = "Test Virtual Ore",
+//            weight = Random.nextDouble(10.0, 30.0),
+//            rangeSize = 50..300,
+//            color = Color.GREEN.hashCode(),
+//            dimensions = listOf(0 to "Earth", -1 to "Nether", 1 to "End"),
+//            ores = listOf(
+//                VirtualOreComponent(ItemStack(Items.iron_ingot), 0),
+//                VirtualOreComponent(ItemStack(Items.gold_ingot), 0),
+//                VirtualOreComponent(ItemStack(Items.diamond), 0),
+//                VirtualOreComponent(ItemStack(Item.getItemFromBlock(Blocks.stone)), 0)
+//            ),
+//            special = null,
+//            isHidden = false
+//        )
+//
+//        VirtualFluidVein(
+//            id = 0,
+//            name = "Empty",
+//            weight = 16.0,
+//            rangeSize = 1..2,
+//            color = Color.GREEN.hashCode(),
+//            dimensions = listOf(),
+//            fluid = VirtualFluidTypeComponent(FluidRegistry.LAVA, 0),
+//            isHidden = true
+//        )
+//
+//        VirtualFluidVein(
+//            id = 1,
+//            name = "Oil",
+//            weight = 16.0,
+//            rangeSize = 1..10,
+//            color = Color.BLACK.hashCode(),
+//            dimensions = listOf(0 to "Earth"),
+//            fluid = VirtualFluidTypeComponent(FluidRegistry.LAVA, 50)
+//        )
+//        VirtualFluidVein(
+//            id = 2,
+//            name = "Heavy Oil",
+//            weight = 16.0,
+//            rangeSize = 1..10,
+//            color = color(255, 0, 255),
+//            dimensions = listOf(0 to "Earth"),
+//            fluid = VirtualFluidTypeComponent(FluidRegistry.LAVA, 50)
+//        )
+//        VirtualFluidVein(
+//            id = 3,
+//            name = "Medium Oil",
+//            weight = 16.0,
+//            rangeSize = 1..10,
+//            color = color(0, 255, 0),
+//            dimensions = listOf(0 to "Earth"),
+//            fluid = VirtualFluidTypeComponent(FluidRegistry.LAVA, 50)
+//        )
+//        VirtualFluidVein(
+//            id = 4,
+//            name = "Light Oil",
+//            weight = 16.0,
+//            rangeSize = 1..10,
+//            color = color(255, 255, 0),
+//            dimensions = listOf(0 to "Earth"),
+//            fluid = VirtualFluidTypeComponent(FluidRegistry.LAVA, 50)
+//        )
     }
 
     private fun color(r: Int, g: Int, b: Int): Int {
