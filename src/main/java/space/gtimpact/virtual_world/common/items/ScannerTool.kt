@@ -25,7 +25,9 @@ import space.gtimpact.virtual_world.extras.send
 import space.gtimpact.virtual_world.extras.toTranslate
 import space.gtimpact.virtual_world.network.ChangeLayerScannerPacket
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
-import space.impact.impact_vw.ASSETS
+import space.gtimpact.virtual_world.ASSETS
+import space.gtimpact.virtual_world.api.extractOreFromChunk
+import space.gtimpact.virtual_world.config.Config
 
 class ScannerTool : Item() {
 
@@ -41,8 +43,8 @@ class ScannerTool : Item() {
         if (Keyboard.isKeyDown(Keyboard.KEY_RMENU) || Keyboard.isKeyDown(Keyboard.KEY_LMENU) ||
             Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)
         ) {
-            entityPlayer.heldItem?.let {
-                (it.item as? ScannerTool)?.let {
+            entityPlayer.heldItem?.also {
+                (it.item as? ScannerTool)?.also {
                     if (event.dwheel != 0) {
                         VirtualOresNetwork.sendToServer(
                             ChangeLayerScannerPacket(
@@ -108,7 +110,7 @@ class ScannerTool : Item() {
     override fun addInformation(
         stack: ItemStack,
         player: EntityPlayer,
-        tooltip: MutableList<Any?>,
+        tooltip: MutableList<String?>,
         f3: Boolean
     ) {
         val mode = stack.getNBTInt(NBT_TYPE)
@@ -128,10 +130,13 @@ class ScannerTool : Item() {
         }
         // To scan the area use Right Click
         tooltip += "scanner.tooltip.5".toTranslate()
+
+        if (Config.enableDebug)
+            tooltip += "2..64 stackSize extract current chunk stackSize * 1000"
     }
 
     init {
-        setMaxStackSize(1)
+        if (!Config.enableDebug) setMaxStackSize(1)
         unlocalizedName = "virtual_ore_scanner"
         if (!IS_DISABLED_SCANNER_TOOL) {
             GameRegistry.registerItem(this, "virtual_ore_scanner")
@@ -140,30 +145,42 @@ class ScannerTool : Item() {
 
     override fun onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack? {
         if (!world.isRemote) {
+            when (stack.stackSize) {
 
-            var type = stack.getNBTInt(NBT_TYPE)
-            val layer = if (type == TYPE_ORES) stack.getNBTInt(NBT_LAYER) else 0
-
-            if (player.isSneaking) {
-                type++
-
-                if (type >= TYPES_COUNT) {
-                    type = 0
+                //for debug
+                in 2..64 -> if (Config.enableDebug && player.capabilities.isCreativeMode) {
+                    val chunk = world.getChunkFromBlockCoords(player.posX.toInt(), player.posZ.toInt())
+                    chunk.extractOreFromChunk(1, 1000 * stack.stackSize)?.also { data ->
+                        player.send("${data.vein}: ${data.size}")
+                    }
                 }
 
-                when (type) {
-                    TYPE_ORES -> player.send("scanner.change_mode.0".toTranslate()) //Set mod: Underground Ores
-                    TYPE_FLUIDS -> player.send("scanner.change_mode.1".toTranslate()) //Set mod: Underground Fluids
+                else -> {
+                    var type = stack.getNBTInt(NBT_TYPE)
+                    val layer = if (type == TYPE_ORES) stack.getNBTInt(NBT_LAYER) else 0
+
+                    if (player.isSneaking) {
+                        type++
+
+                        if (type >= TYPES_COUNT) {
+                            type = 0
+                        }
+
+                        when (type) {
+                            TYPE_ORES -> player.send("scanner.change_mode.0".toTranslate()) //Set mod: Underground Ores
+                            TYPE_FLUIDS -> player.send("scanner.change_mode.1".toTranslate()) //Set mod: Underground Fluids
+                        }
+                        stack.setNBT(type, NBT_TYPE)
+                        return super.onItemRightClick(stack, world, player)
+                    }
+
+                    val radius = 20
+
+                    when (type) {
+                        TYPE_ORES -> scanOres(world, layer, player as EntityPlayerMP, radius)
+                        TYPE_FLUIDS -> scanFluids(world, player as EntityPlayerMP, radius)
+                    }
                 }
-                stack.setNBT(type, NBT_TYPE)
-                return super.onItemRightClick(stack, world, player)
-            }
-
-            val radius = 11
-
-            when (type) {
-                TYPE_ORES -> scanOres(world, layer, player as EntityPlayerMP, radius)
-                TYPE_FLUIDS -> scanFluids(world, player as EntityPlayerMP, radius)
             }
         }
         return super.onItemRightClick(stack, world, player)

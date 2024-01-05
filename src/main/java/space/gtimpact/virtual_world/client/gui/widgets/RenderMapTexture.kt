@@ -4,9 +4,10 @@ import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.client.renderer.texture.TextureUtil
 import net.minecraft.client.resources.IResourceManager
+import net.minecraft.world.ChunkCoordIntPair
 import org.lwjgl.opengl.GL11
-import space.gtimpact.virtual_world.network.BlockCoordinates
 import space.gtimpact.virtual_world.network.FindVeinsPacket
+import space.gtimpact.virtual_world.util.Math.repeatOffset
 import java.awt.Color
 import java.awt.image.BufferedImage
 
@@ -28,42 +29,52 @@ class RenderMapTexture(
         val playerX = packet.centerX - (packet.chunkX - packet.radius) * 16 - 1
         val playerZ = packet.centerZ - (packet.chunkZ - packet.radius) * 16 - 1
 
-        for (x in 0 until radius) {
-            for (z in 0 until radius) {
-                image.setRGB(x, z, backgroundColor)
-                val chunk = BlockCoordinates(x, z)
-                packet.map[chunk]?.apply {
-                    val name = packet.metaMap[idComponent.toShort()] ?: "ERROR"
+        repeatOffset(0, radius - 1, 16) { z ->
+            repeatOffset(0, radius - 1, 16) { x ->
 
-                    // Variables used to locate within a chunk.
-                    val k: Int = x % 16 + 1
-                    val l: Int = z % 16 + 1
-                    val first = ((k.toDouble()) + (l.toDouble()) * 15.5)
-                    val percentOre = (first / 256.0) * 100
-                    // Variables used to locate within a chunk.
-                    val isAmountValid = percentOre < amount
-                    val isSelected = selected == "All" || selected == name
+                val chunk = ChunkCoordIntPair(x, z)
+                val vein = packet.map[chunk]
+                var counter = 0
 
-                    // draw render component
-                    if (isAmountValid && isSelected) {
-                        val color = packet.ores.getOrDefault(name, Color.BLACK.rgb or -0x1000000)
-                        image.setRGB(x, z, color)
+                repeat(16) { zz ->
+                    repeat(16) { xx ->
+
+                        if (zz != 0 || xx != 0) {
+                            counter++
+                            image.setRGB(x + xx, z + zz, backgroundColor)
+                            if (vein != null) {
+                                val name = packet.metaMap[vein.idComponent.toShort()] ?: "ERROR"
+                                if (selected == "All" || selected == name) {
+                                    if (counter <= 225 * vein.amount / 100) {
+                                        val color = packet.ores.getOrDefault(name, Color.BLACK.rgb or -0x1000000)
+                                        image.setRGB(x + xx, z + zz, color)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+            }
+        }
+
+        for(x in 0 until radius) {
+            for(z in 0 until radius) {
                 // draw player pos
                 if (x == playerX || z == playerZ) {
                     raster.setSample(x, z, 0, (raster.getSample(x, z, 0) + 255) / 2)
                     raster.setSample(x, z, 1, raster.getSample(x, z, 1) / 2)
                     raster.setSample(x, z, 2, raster.getSample(x, z, 2) / 2)
                 }
+
+                // draw grid
                 if (x % 16 == 0 || z % 16 == 0) {
-                    // draw grid
                     raster.setSample(x, z, 0, raster.getSample(x, z, 0) / 2)
                     raster.setSample(x, z, 1, raster.getSample(x, z, 1) / 2)
                     raster.setSample(x, z, 2, raster.getSample(x, z, 2) / 2)
                 }
             }
         }
+
         return image
     }
 
@@ -81,6 +92,7 @@ class RenderMapTexture(
         deleteGlTexture()
         val tId = getGlTextureId()
         if (tId < 0) return
+
         TextureUtil.uploadTextureImageAllocate(getGlTextureId(), getImage(), false, false)
         width = packet.getSize()
         height = packet.getSize()

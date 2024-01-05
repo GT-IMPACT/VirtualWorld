@@ -72,4 +72,3 @@ interface IPacket {
     fun process()
     fun decode(data: ByteArrayDataInput): IPacket
 }
-

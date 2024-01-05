@@ -1,6 +1,5 @@
 package space.gtimpact.virtual_world.api
 
-import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.ChunkCoordIntPair
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
@@ -9,18 +8,17 @@ import space.gtimpact.virtual_world.api.fluids.VeinFluid
 import space.gtimpact.virtual_world.api.ores.ChunkOre
 import space.gtimpact.virtual_world.api.ores.VeinOre
 import space.gtimpact.virtual_world.common.world.IModifiableChunk
-import space.gtimpact.virtual_world.extras.NBT
 import java.util.ArrayList
 import java.util.HashMap
 import kotlin.random.Random
 
 object ResourceGenerator {
 
-    private const val SHIFT_REGION_FROM_CHUNK = 5
-    private const val SHIFT_VEIN_FROM_REGION = 3
-    private const val SHIFT_CHUNK_FROM_VEIN = 2
-    private const val CHUNK_COUNT_IN_VEIN_COORDINATE = 4
-    private const val VEIN_COUNT_IN_REGIN_COORDINATE = 8
+    internal const val SHIFT_REGION_FROM_CHUNK = 5
+    internal const val SHIFT_VEIN_FROM_REGION = 3
+    internal const val SHIFT_CHUNK_FROM_VEIN = 2
+    internal const val CHUNK_COUNT_IN_VEIN_COORDINATE = 4
+    internal const val VEIN_COUNT_IN_REGIN_COORDINATE = 8
 
     fun Chunk.generateResources() {
 
@@ -32,8 +30,10 @@ object ResourceGenerator {
                 dim = worldObj.provider.dimensionId
             )
 
-            reg.generateOreLayers(worldObj)
-            reg.generateFluidLayers(worldObj)
+            if (hasGenerate()) {
+                reg.generateOreLayers(worldObj)
+                reg.generateFluidLayers(worldObj)
+            }
         }
     }
 
@@ -65,11 +65,9 @@ object ResourceGenerator {
                     val ch = world.getChunkFromChunkCoords(chunk.x, chunk.z)
                     if (ch is IModifiableChunk) {
                         when (layer) {
-                            0 -> if (ch.getNbt(NBT.ORE_LAYER_0) == null)
-                                ch.saveOreLayer0(vein.oreId, chunk.size)
+                            0 -> ch.saveOreLayer0(vein.oreId, chunk.size)
 
-                            1 -> if (ch.getNbt(NBT.ORE_LAYER_1) == null)
-                                ch.saveOreLayer1(vein.oreId, chunk.size)
+                            1 -> ch.saveOreLayer1(vein.oreId, chunk.size)
                         }
                     }
                 }
@@ -113,14 +111,18 @@ object ResourceGenerator {
             vein.oreChunks.forEach { chunk ->
                 val ch = world.getChunkFromChunkCoords(chunk.x, chunk.z)
                 if (ch is IModifiableChunk) {
-                    if (ch.getNbt(NBT.FLUID_LAYER) == null)
-                        ch.saveFluidLayer(vein.fluidId, chunk.size, chunk.type)
+                    ch.saveFluidLayer(vein.fluidId, chunk.size, chunk.type)
                 }
             }
         }
     }
 
     private fun VeinFluid.generate(vein: VirtualFluidVein) {
+
+        val sizeVein = if (!vein.isHidden && vein.rangeSize.last > 0)
+            Random.nextInt(vein.rangeSize.first * 1000, vein.rangeSize.last * 1000)
+        else 0
+
         for (x in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
             for (z in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
                 ChunkFluid(
@@ -128,8 +130,7 @@ object ResourceGenerator {
                     z = (zVein shl SHIFT_CHUNK_FROM_VEIN) + z,
                     type = TypeFluidVein.values().random(),
                 ).apply {
-                    if (!vein.isHidden && vein.rangeSize.last > 0)
-                        size = Random.nextInt(vein.rangeSize.first * 1000, vein.rangeSize.last * 1000)
+                    size = sizeVein
                     oreChunks += this
                 }
             }
@@ -191,6 +192,7 @@ data class RegionRes(
     val xRegion: Int,
     val zRegion: Int,
     val dim: Int,
-    val oreVeins: HashMap<Int, ArrayList<VeinOre>> = HashMap(),
-    val fluidVeins: ArrayList<VeinFluid> = arrayListOf(),
-)
+) {
+    val oreVeins: HashMap<Int, ArrayList<VeinOre>> = HashMap()
+    val fluidVeins: ArrayList<VeinFluid> = arrayListOf()
+}

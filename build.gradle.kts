@@ -1,35 +1,29 @@
 plugins {
     alias(libs.plugins.buildconfig)
-    groovy
     id("minecraft")
-    id("publish")
 }
 
 repositories {
     maven("https://maven.accident.space/repository/maven-public/")
-    maven("https://jitpack.io")
     mavenCentral()
+    maven("https://jitpack.io")
+    maven("https://cursemaven.com")
     mavenLocal()
 }
 
-val modId: String by extra
-val modName: String by extra
-val modGroup: String by extra
-val modAssets: String by extra
-
-buildConfig {
-    packageName("space.impact.$modId")
-    buildConfigField("String", "MODID", "\"${modId}\"")
-    buildConfigField("String", "MODNAME", "\"${modName}\"")
-    buildConfigField("String", "VERSION", "\"${project.version}\"")
-    buildConfigField("String", "GROUPNAME", "\"${modGroup}\"")
-    buildConfigField("String", "ASSETS", "\"${modAssets}\"")
-    useKotlinOutput { topLevelConstants = true }
-}
 
 dependencies {
-    implementation("com.github.GTNewHorizons:NotEnoughItems:2.3.53-GTNH:dev")
+    implementation("com.github.GTNewHorizons:CodeChickenLib:1.1.10:dev")
+    implementation("com.github.GTNewHorizons:CodeChickenCore:1.1.13:dev")
+    implementation("com.github.GTNewHorizons:NotEnoughItems:2.4.13-GTNH:dev")
+    implementation("space.impact:packet_network:1.1.3")
+    implementation("com.github.GT-IMPACT:VisualProspecting:1.3.0") { isTransitive = false }
     api("space.impact:forgelin:2.0.+") { isChanging = true }
+    api("curse.maven:journeymap-32274:4500659")
 }
 
-apply(from = "runConf.gradle")
+val modId: String by extra
+
+tasks.runClient.configure {
+    extraArgs.addAll("--mixin", "mixins.$modId.json")
+}

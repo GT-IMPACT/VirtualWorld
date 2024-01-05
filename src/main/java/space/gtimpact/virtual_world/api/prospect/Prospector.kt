@@ -3,50 +3,61 @@ package space.gtimpact.virtual_world.api.prospect
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
+import space.gtimpact.virtual_world.addon.visual_prospecting.ProspectorVeinManager
+import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualFluidVeinPosition
+import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualOreVeinPosition
 import space.gtimpact.virtual_world.api.getFluidLayer
 import space.gtimpact.virtual_world.api.getOreLayer0
 import space.gtimpact.virtual_world.api.getOreLayer1
 import space.gtimpact.virtual_world.common.items.ScannerTool
 import space.gtimpact.virtual_world.network.FindVeinsPacket
 import space.gtimpact.virtual_world.network.VirtualOresNetwork
-
+import space.gtimpact.virtual_world.network.prospectorPacketFluid
+import space.gtimpact.virtual_world.network.sendPacket
 
 fun scanOres(w: World, layer: Int, player: EntityPlayerMP, radius: Int) {
 
     val chX = player.posX.toInt() shr 4
     val chZ = player.posZ.toInt() shr 4
 
-    val chunks: ArrayList<Chunk> = ArrayList()
+    val packet = FindVeinsPacket(w.provider.dimensionId, chX, chZ, player.posX.toInt(), player.posZ.toInt(), radius - 1, ScannerTool.TYPE_ORES, layer)
+
+    val chunksRes = arrayListOf<VirtualOreVeinPosition>()
 
     for (x in -radius..radius) {
         for (z in -radius..radius) {
             if (x != -radius && x != radius && z != -radius && z != radius) {
-                chunks += w.getChunkFromChunkCoords(chX + x, chZ + z)
+                val chunk = w.getChunkFromChunkCoords(chX + x, chZ + z)
+                val veinPos = scanOreChunk(chunk, layer)
+                if (veinPos != null) {
+                    chunksRes += veinPos
+                    fillPacketForChunk(chunk, packet, veinPos.vein.id, veinPos.size)
+                }
             }
         }
     }
 
-    val packet = FindVeinsPacket(chX, chZ, player.posX.toInt(), player.posZ.toInt(), radius - 1, ScannerTool.TYPE_ORES)
+//    VirtualOresNetwork.sendToPlayer(packet, player)
 
-    for (chunk in chunks)
-        scanOreChunk(chunk, packet, layer)
-
-    packet.level = radius - 1
-
-    VirtualOresNetwork.sendToPlayer(packet, player)
+    ProspectorVeinManager.createArea(chunksRes, w.getChunkFromChunkCoords(chX, chZ), player, layer)
 }
 
-private fun scanOreChunk(chunk: Chunk, packet: FindVeinsPacket, layer: Int) {
-    val count = when(layer) {
+private fun scanOreChunk(chunk: Chunk, layer: Int): VirtualOreVeinPosition? {
+    val count = when (layer) {
         0 -> chunk.getOreLayer0()
         1 -> chunk.getOreLayer1()
         else -> null
     }
 
-    if (count != null) {
-        val size = count.size.toDouble() / count.vein.rangeSize.last.toDouble() * 100.0
-        fillPacketForChunk(chunk, packet, count.vein.id, size.toInt() / 1000)
-    }
+    return if (count != null) {
+        VirtualOreVeinPosition(
+            dimId = chunk.worldObj.provider.dimensionId,
+            x = chunk.xPosition,
+            z = chunk.zPosition,
+            vein = count.vein,
+            size = count.size * 100 / (count.vein.rangeSize.last * 1000)
+        )
+    } else null
 }
 
 fun scanFluids(w: World, player: EntityPlayerMP, radius: Int) {
@@ -64,29 +75,46 @@ fun scanFluids(w: World, player: EntityPlayerMP, radius: Int) {
         }
     }
 
-    val packet = FindVeinsPacket(chX, chZ, player.posX.toInt(), player.posZ.toInt(), radius - 1, ScannerTool.TYPE_FLUIDS)
+    val packet = FindVeinsPacket(w.provider.dimensionId, chX, chZ, player.posX.toInt(), player.posZ.toInt(), radius - 1, ScannerTool.TYPE_FLUIDS)
+
+    val list = arrayListOf<VirtualFluidVeinPosition>()
 
     for (chunk in chunks)
-        scanFluidChunk(chunk, packet)
+        scanFluidChunk(chunk, packet)?.also { list += it }
 
-
-    packet.level = radius - 1
 
     VirtualOresNetwork.sendToPlayer(packet, player)
+
+    val listInts = arrayListOf<Int>()
+
+    listInts += list.size
+
+    list.forEach {
+        listInts += it.vein.id
+        listInts += it.x
+        listInts += it.z
+        listInts += it.size
+    }
+
+    if (!w.isRemote)
+        player.sendPacket(prospectorPacketFluid.transaction(*listInts.toIntArray()))
 }
 
-private fun scanFluidChunk(chunk: Chunk, packet: FindVeinsPacket) {
+private fun scanFluidChunk(chunk: Chunk, packet: FindVeinsPacket): VirtualFluidVeinPosition? {
     val count = chunk.getFluidLayer()
-    if (count != null && count.vein.rangeSize.last > 0) {
+    return if (count != null && count.vein.rangeSize.last > 0) {
         val size = count.size.toDouble() / count.vein.rangeSize.last.toDouble() * 100.0
         fillPacketForChunk(chunk, packet, count.vein.id, size.toInt() / 1000)
-    }
+        VirtualFluidVeinPosition(
+            dimId = chunk.worldObj.provider.dimensionId,
+            x = chunk.xPosition,
+            z = chunk.zPosition,
+            vein = count.vein,
+            size = count.size * 100 / (count.vein.rangeSize.last * 1000)
+        )
+    } else null
 }
 
 private fun fillPacketForChunk(chunk: Chunk, packet: FindVeinsPacket, idComponent: Int, size: Int) {
-    for (xx in 0..15) {
-        for (zz in 0..15) {
-            packet.addRenderComponent(chunk.xPosition * 16 + xx, chunk.zPosition * 16 + zz, idComponent, size)
-        }
-    }
+    packet.addRenderComponent(chunk.xPosition * 16, chunk.zPosition * 16, idComponent, size)
 }

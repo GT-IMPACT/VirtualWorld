@@ -5,8 +5,9 @@ plugins {
 
 dependencies {
     implementation(libs.gradle.kotlin)
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.21")
     implementation(libs.gradle.gitversion)
-    implementation(libs.forge.gradle) { isChanging = true }
+    implementation(libs.gradle.retro)
+    implementation(libs.gradle.idea)
+    implementation(libs.gradle.buildconfig)
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }

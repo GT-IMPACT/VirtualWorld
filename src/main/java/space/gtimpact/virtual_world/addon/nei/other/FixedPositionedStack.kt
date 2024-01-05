@@ -77,10 +77,3 @@ fun copy(vararg stacks: ItemStack?): ItemStack? {
     }
     return null
 }
-fun areUnificationsEqual(aStack1: ItemStack?, aStack2: ItemStack?, aIgnoreNBT: Boolean): Boolean {
-    return aStack1 != null && aStack2 != null
-            && aStack1.item === aStack2.item
-            && (aIgnoreNBT || aStack1.tagCompound == null == (aStack2.tagCompound == null) && (aStack1.tagCompound == null || aStack1.tagCompound == aStack2.tagCompound))
-            && (Items.feather.getDamage(aStack1) == Items.feather.getDamage(aStack2) || Items.feather.getDamage(aStack1) == 32767 || Items.feather.getDamage(aStack2) == 32767)
-}
-

@@ -19,6 +19,8 @@ object Config {
     var countWaterForMPDrill = 100
     var countWaterForHPDrill = 1000
 
+    var enableDebug = false
+
     private inline fun onPostCreate(configFile: File?, crossinline action: (Configuration) -> Unit) {
         Configuration(configFile).let { config ->
             config.load()
@@ -92,6 +94,13 @@ object Config {
                 0,
                 10000,
                 "Count Water For HP Drilling Fluids"
+            )
+
+            enableDebug = cfg.getBoolean(
+                "enableDebug",
+                GENERAL,
+                enableDebug,
+                "Enabled Debug Mode"
             )
         }
     }

@@ -11,3 +11,7 @@ scanner.tooltip.3=Изменить рудный слой: Ctrl + Mouse Scroll
 scanner.tooltip.4=§aПодземные жидкости
 scanner.tooltip.5=Сканировать территорию: Right Click
 scanner.tooltip.6=Текущий рудный слой: §a#
+
+visualprospecting.button.virtualores.l0=Виртуальные Руды Слой 0
+visualprospecting.button.virtualores.l1=Виртуальные Руды Слой 1
+visualprospecting.button.virtualfluids=Виртуальные Жидкости

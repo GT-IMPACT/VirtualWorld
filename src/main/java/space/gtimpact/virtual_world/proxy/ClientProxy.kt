@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft
 import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.client.gui.ScannerGui
 
-
 class ClientProxy : CommonProxy() {
 
     override fun openGui() {
