@@ -40,10 +40,10 @@ java {
 
 archivesName.set(modFile ?: modId)
 
-tasks.withType<GenerateModuleMetadata> {
-    enabled = false
-    mustRunAfter("reobf")
-}
+//tasks.withType<GenerateModuleMetadata> {
+//    enabled = false
+//    mustRunAfter("reobfJar")
+//}
 
 configure<PublishingExtension> {
     publications {
@@ -52,8 +52,6 @@ configure<PublishingExtension> {
             pom.withXml {
                 removeRuntimeDependencies(asNode())
             }
-
-            artifact(tasks["devJar"])
             groupId = "space.impact"
             artifactId = modId
             version = identifiedVersion
