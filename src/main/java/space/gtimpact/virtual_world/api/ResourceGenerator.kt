@@ -144,7 +144,7 @@ object ResourceGenerator {
 
         var vein: VeinOre? = null
 
-        loop@ for (xxx in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
+        for (xxx in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
             for (zzz in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
 
                 val veinOre = VeinOre(
@@ -165,7 +165,6 @@ object ResourceGenerator {
 
                         if (chunk.x == chunkX && chunk.z == chunkZ) {
                             vein = veinOre
-                            break@loop
                         }
                     }
                 }
