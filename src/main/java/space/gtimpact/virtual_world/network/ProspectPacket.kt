@@ -1,6 +1,7 @@
 package space.gtimpact.virtual_world.network
 
 import net.minecraft.server.MinecraftServer
+import net.minecraftforge.client.MinecraftForgeClient
 import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualFluidVeinPosition
 import space.gtimpact.virtual_world.addon.visual_prospecting.cache.ClientVirtualWorldCache
 import space.gtimpact.virtual_world.addon.visual_prospecting.readPacketDataOreVein
@@ -50,7 +51,7 @@ val prospectorPacketOre = createPacketStream(2001) { isServer, read ->
 val notifyClientSavePacket = createPacketStream(2002) { isServer, data ->
     if (!isServer) {
         val isSave = data.readBoolean()
-        val worldName = MinecraftServer.getServer()?.worldName ?: return@createPacketStream
+        val worldName = data.readUTF()
         if (isSave)
             ClientVirtualWorldCache.saveCache(worldName)
         else
