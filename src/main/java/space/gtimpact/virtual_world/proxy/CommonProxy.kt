@@ -24,8 +24,6 @@ open class CommonProxy {
     }
 
     open fun postInit(event: FMLPostInitializationEvent) {
-        if (Loader.isModLoaded("visualprospecting"))
-            VirtualProspectingIntegration.postInit()
 
     }
 

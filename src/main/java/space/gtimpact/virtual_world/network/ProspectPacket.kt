@@ -50,7 +50,7 @@ val prospectorPacketOre = createPacketStream(2001) { isServer, read ->
 val notifyClientSavePacket = createPacketStream(2002) { isServer, data ->
     if (!isServer) {
         val isSave = data.readBoolean()
-        val worldName = MinecraftServer.getServer().worldName
+        val worldName = MinecraftServer.getServer()?.worldName ?: return@createPacketStream
         if (isSave)
             ClientVirtualWorldCache.saveCache(worldName)
         else
