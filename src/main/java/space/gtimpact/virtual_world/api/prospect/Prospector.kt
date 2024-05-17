@@ -39,8 +39,8 @@ fun scanOres(w: World, layer: Int, player: EntityPlayer, radius: Int, needShowGu
         }
     }
 
-    if (needShowGui)
-        VirtualOresNetwork.sendToPlayer(packet, player)
+//    if (needShowGui)
+//        VirtualOresNetwork.sendToPlayer(packet, player)
 
     ProspectorVeinManager.createArea(chunksRes, w.getChunkFromChunkCoords(chX, chZ), player, layer)
 }
@@ -87,8 +87,8 @@ fun scanFluids(w: World, player: EntityPlayer, radius: Int, needShowGui: Boolean
     for (chunk in chunks)
         scanFluidChunk(chunk, packet)?.also { list += it }
 
-    if (needShowGui)
-        VirtualOresNetwork.sendToPlayer(packet, player)
+//    if (needShowGui)
+//        VirtualOresNetwork.sendToPlayer(packet, player)
 
     val listInts = arrayListOf<Int>()
 

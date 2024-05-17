@@ -1,11 +1,12 @@
 package space.gtimpact.virtual_world.network
 
+import net.minecraft.client.Minecraft
 import net.minecraft.server.MinecraftServer
-import net.minecraftforge.client.MinecraftForgeClient
 import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualFluidVeinPosition
 import space.gtimpact.virtual_world.addon.visual_prospecting.cache.ClientVirtualWorldCache
 import space.gtimpact.virtual_world.addon.visual_prospecting.readPacketDataOreVein
 import space.gtimpact.virtual_world.api.VirtualAPI
+import space.gtimpact.virtual_world.common.items.ScannerTool
 import space.impact.packet_network.network.packets.createPacketStream
 
 val prospectorPacketFluid = createPacketStream(2000) { isServer, read ->
@@ -51,10 +52,23 @@ val prospectorPacketOre = createPacketStream(2001) { isServer, read ->
 val notifyClientSavePacket = createPacketStream(2002) { isServer, data ->
     if (!isServer) {
         val isSave = data.readBoolean()
-        val worldName = data.readUTF()
+
+        val serverName = runCatching {
+            val serverData = Minecraft.getMinecraft().func_147104_D()
+            serverData?.serverName ?: MinecraftServer.getServer()?.worldName
+        }.getOrNull() ?: return@createPacketStream
+
         if (isSave)
-            ClientVirtualWorldCache.saveCache(worldName)
+            ClientVirtualWorldCache.saveCache(serverName)
         else
-            ClientVirtualWorldCache.loadVeinCache(worldName)
+            ClientVirtualWorldCache.loadVeinCache(serverName)
+    }
+}
+
+val MetaBlockGlassPacket = createPacketStream(2003) {  isServer, data  ->
+    if (isServer) {
+        serverPlayer?.heldItem?.also { stack ->
+            (stack.item as ScannerTool).changeLayer(serverPlayer!!, stack)
+        }
     }
 }

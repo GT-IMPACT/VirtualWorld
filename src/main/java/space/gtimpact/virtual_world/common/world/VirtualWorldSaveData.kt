@@ -1,6 +1,5 @@
 package space.gtimpact.virtual_world.common.world
 
-import com.google.common.io.ByteStreams
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.gameevent.PlayerEvent
 import net.minecraft.nbt.NBTTagCompound
@@ -18,15 +17,14 @@ class VirtualWorldSaveData(name: String) : WorldSavedData(name) {
 
     @Suppress("unused")
     @SubscribeEvent
-    fun onPlayerLogged(e: PlayerEvent.PlayerLoggedInEvent) {
-        val serverName = MinecraftServer.getServer()?.worldName ?: return
+    fun onPlayerLoggedIn(e: PlayerEvent.PlayerLoggedInEvent) {
+        e.player.sendPacket(notifyClientSavePacket.transaction(false))
+    }
 
-        @Suppress("UnstableApiUsage")
-        val buf = ByteStreams.newDataOutput()
-        buf.writeBoolean(false)
-        buf.writeUTF(serverName)
-
-        e.player.sendPacket(notifyClientSavePacket.transaction(buf))
+    @Suppress("unused")
+    @SubscribeEvent
+    fun onPlayerLoggedOut(e: PlayerEvent.PlayerLoggedOutEvent) {
+        e.player.sendPacket(notifyClientSavePacket.transaction(true))
     }
 
     @Suppress("unused")

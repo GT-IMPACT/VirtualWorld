@@ -23,11 +23,11 @@ import space.gtimpact.virtual_world.api.prospect.scanOres
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_SCANNER_TOOL
 import space.gtimpact.virtual_world.extras.send
 import space.gtimpact.virtual_world.extras.toTranslate
-import space.gtimpact.virtual_world.network.ChangeLayerScannerPacket
-import space.gtimpact.virtual_world.network.VirtualOresNetwork
 import space.gtimpact.virtual_world.ASSETS
 import space.gtimpact.virtual_world.api.extractOreFromChunk
 import space.gtimpact.virtual_world.config.Config
+import space.gtimpact.virtual_world.network.MetaBlockGlassPacket
+import space.impact.packet_network.network.NetworkHandler.sendToServer
 
 class ScannerTool : Item() {
 
@@ -46,12 +46,7 @@ class ScannerTool : Item() {
             entityPlayer.heldItem?.also {
                 (it.item as? ScannerTool)?.also {
                     if (event.dwheel != 0) {
-                        VirtualOresNetwork.sendToServer(
-                            ChangeLayerScannerPacket(
-                                entityPlayer.worldObj.provider.dimensionId,
-                                entityPlayer.entityId
-                            )
-                        )
+                        entityPlayer.sendToServer(MetaBlockGlassPacket.transaction(event.dwheel > 0))
                     }
                     event.isCanceled = true
                 }
