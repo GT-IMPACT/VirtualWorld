@@ -104,7 +104,7 @@ class ObjectsDrawStep(private val location: ObjectsLocation) : DrawStep {
             val y = pixel.getY()
 
 
-            ItemStackRenderer.renderItemStack(stack, x.toInt(), y.toInt(), overlayText = null, scale = 2f)
+            ItemStackRenderer.renderItemStack(stack, x.toInt(), y.toInt(), overlayText = null)
 
             DrawUtil.drawLabel(
                 StatCollector.translateToLocal(name),
