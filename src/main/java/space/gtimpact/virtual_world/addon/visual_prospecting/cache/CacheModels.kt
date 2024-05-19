@@ -1,5 +1,7 @@
 package space.gtimpact.virtual_world.addon.visual_prospecting.cache
 
+import net.minecraft.item.ItemStack
+import net.minecraft.world.ChunkCoordIntPair
 import space.gtimpact.virtual_world.api.VirtualOreVein
 
 data class CacheOreVeinList(
@@ -22,3 +24,14 @@ data class CacheOreVeinChunk(
     val z: Int,
     val size: Int, //byte (percent 0..100)
 )
+
+data class CacheObjectChunk(
+    val elements: List<ObjectElement> = emptyList(),
+    val coords: ChunkCoordIntPair,
+    val dimId: Int,
+) {
+    data class ObjectElement(
+        val name: String,
+        val stack: ItemStack,
+    )
+}

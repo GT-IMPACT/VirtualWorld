@@ -5,17 +5,21 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.sinthoras.visualprospecting.Utils
 import net.minecraft.world.ChunkCoordIntPair
-import space.gtimpact.virtual_world.addon.visual_prospecting.cache.*
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.CacheObjectChunk
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.CacheOreVein
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.CacheOreVeinChunk
 import space.gtimpact.virtual_world.api.ResourceGenerator
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualFluidVein
 import space.gtimpact.virtual_world.api.VirtualOreVein
+import space.gtimpact.virtual_world.util.ItemStackJsonUtil
 
 class DimensionCache(private val dimId: Int) {
 
     private val oreChunksLayer0 = HashMap<ChunkCoordIntPair, CacheOreVein>()
     private val oreChunksLayer1 = HashMap<ChunkCoordIntPair, CacheOreVein>()
     private val fluidChunks = HashMap<ChunkCoordIntPair, VirtualFluidVeinPosition>()
+    private val customObject = HashMap<ChunkCoordIntPair, CacheObjectChunk>()
 
     fun saveOreChunksLayer0(): JsonElement {
         val json = JsonObject()
@@ -107,8 +111,36 @@ class DimensionCache(private val dimId: Int) {
         return json
     }
 
+    fun saveObjects(): JsonElement {
+        val json = JsonObject()
+        val jsonArray = JsonArray()
 
-    fun load(layer0: JsonObject?, layer1: JsonObject?, fluids: JsonObject?) = runCatching {
+        customObject.forEach { (chunkC, data) ->
+            val chunk = JsonObject()
+
+            chunk.addProperty("chunkXPos", chunkC.chunkXPos)
+            chunk.addProperty("chunkZPos", chunkC.chunkZPos)
+
+            val elements = JsonArray()
+            data.elements.forEach { (name, stack) ->
+                val element = JsonObject()
+
+                element.addProperty("name", name)
+                element.addProperty("stack", ItemStackJsonUtil.itemStackToJson(stack))
+
+                elements.add(element)
+            }
+            chunk.add("elements", elements)
+            jsonArray.add(chunk)
+        }
+
+        json.addProperty("dim", dimId)
+        json.add("chunks", jsonArray)
+
+        return json
+    }
+
+    fun load(layer0: JsonObject?, layer1: JsonObject?, fluids: JsonObject?, customObjects: JsonObject?) = runCatching {
         if (layer0 != null) {
             oreChunksLayer0.clear()
             oreChunksLayer0 += layer0.getAsJsonArray("chunks").associate { chunk ->
@@ -189,14 +221,41 @@ class DimensionCache(private val dimId: Int) {
                 )
             }
         }
+
+        if (customObjects != null) {
+            customObject.clear()
+            customObject += customObjects.getAsJsonArray("chunks").associate { chunk ->
+                val chunkXPos = chunk.asJsonObject.getAsJsonPrimitive("chunkXPos").asInt
+                val chunkZPos = chunk.asJsonObject.getAsJsonPrimitive("chunkZPos").asInt
+
+                val elements = chunk.asJsonObject.getAsJsonArray("elements").map { element ->
+
+                    val name = element.asJsonObject.getAsJsonPrimitive("name").asString
+                    val stack = element.asJsonObject.getAsJsonPrimitive("stack").asString
+
+                    CacheObjectChunk.ObjectElement(
+                        name = name,
+                        stack = ItemStackJsonUtil.jsonToItemStack(stack),
+                    )
+                }
+
+                val coords = keyOfCoords(chunkXPos, chunkZPos)
+
+                coords to CacheObjectChunk(
+                    elements = elements,
+                    coords = coords,
+                    dimId = dimId,
+                )
+            }
+        }
     }
 
-    private fun getOreVeinKey(chunkX: Int, chunkZ: Int): ChunkCoordIntPair {
+    private fun keyOfCoords(chunkX: Int, chunkZ: Int): ChunkCoordIntPair {
         return ChunkCoordIntPair(Utils.mapToCenterOreChunkCoord(chunkX), Utils.mapToCenterOreChunkCoord(chunkZ))
     }
 
     fun putOre(layer: Int, veinPosition: CacheOreVein) {
-        val key = getOreVeinKey(
+        val key = keyOfCoords(
             veinPosition.x shl ResourceGenerator.SHIFT_CHUNK_FROM_VEIN,
             veinPosition.z shl ResourceGenerator.SHIFT_CHUNK_FROM_VEIN,
         )
@@ -207,7 +266,7 @@ class DimensionCache(private val dimId: Int) {
     }
 
     fun getOreVein(layer: Int, x: Int, z: Int): CacheOreVein? {
-        val key = getOreVeinKey(x, z)
+        val key = keyOfCoords(x, z)
         return when (layer) {
             0 -> oreChunksLayer0[key]
             1 -> oreChunksLayer1[key]
@@ -216,15 +275,40 @@ class DimensionCache(private val dimId: Int) {
     }
 
     fun putFluid(veinPosition: VirtualFluidVeinPosition) {
-        val key = getOreVeinKey(veinPosition.x, veinPosition.z)
+        val key = keyOfCoords(veinPosition.x, veinPosition.z)
         fluidChunks[key] = veinPosition
     }
 
     fun getFluidVein(x: Int, z: Int): VirtualFluidVeinPosition? {
-        val key = getOreVeinKey(x, z)
+        val key = keyOfCoords(x, z)
         return fluidChunks[key]
     }
 
+    fun putObjectElement(element: CacheObjectChunk.ObjectElement, x: Int, z: Int) {
+        val key = keyOfCoords(x, z)
+        val objectCache = customObject.computeIfAbsent(key) { CacheObjectChunk(coords = key, dimId = dimId) }
+        val updateCache = objectCache.copy(elements = objectCache.elements + element)
+        customObject.replace(key, updateCache)
+    }
+
+    fun putObjectChunk(obj: CacheObjectChunk, x: Int, z: Int) {
+        val key = keyOfCoords(x, z)
+        customObject[key] = obj
+    }
+
+    fun getObjectChunk(x: Int, z: Int): CacheObjectChunk? {
+        val key = keyOfCoords(x, z)
+        return customObject[key]
+    }
+
+    fun removeObjectChunk(element: CacheObjectChunk.ObjectElement, x: Int, z: Int) {
+        val key = keyOfCoords(x, z)
+        customObject[key]?.also { cache ->
+            val list = cache.elements.toMutableList()
+            list.removeIf { it == element }
+            customObject[key] = cache.copy(elements = list)
+        }
+    }
 }
 
 data class VirtualOreVeinPosition(

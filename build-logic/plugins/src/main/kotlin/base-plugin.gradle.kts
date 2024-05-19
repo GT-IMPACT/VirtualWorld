@@ -8,7 +8,6 @@ plugins {
     id("com.github.gmazzo.buildconfig")
     id("java-library")
     kotlin("jvm")
-    kotlin("kapt")
 }
 
 configure<MinecraftExtension> {

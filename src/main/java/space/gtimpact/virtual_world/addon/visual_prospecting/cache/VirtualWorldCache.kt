@@ -1,6 +1,7 @@
 package space.gtimpact.virtual_world.addon.visual_prospecting.cache
 
 import com.google.gson.Gson
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import space.gtimpact.virtual_world.addon.visual_prospecting.DimensionCache
 import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualFluidVeinPosition
@@ -12,6 +13,7 @@ abstract class VirtualWorldCache {
         const val DIR_ORES_L0 = "ores_0"
         const val DIR_ORES_L1 = "ores_1"
         const val DIR_FLUIDS = "fluids"
+        const val DIR_OBJECTS = "objects"
     }
 
     protected val dimensions: HashMap<Int, DimensionCache> = HashMap()
@@ -34,19 +36,12 @@ abstract class VirtualWorldCache {
                 val dim = file.name.replace("DIM", "").toIntOrNull() ?: return@forEach
                 val dimension = DimensionCache(dim)
 
-                val fileLayer0 = File(file, "$DIR_ORES_L0.json")
-                if (!fileLayer0.canRead()) fileLayer0.createNewFile()
-                val layer0 = gson.fromJson(fileLayer0.readText(), JsonObject::class.java)
+                val layer0 = readJson(file, DIR_ORES_L0)
+                val layer1 = readJson(file, DIR_ORES_L1)
+                val fluids = readJson(file, DIR_FLUIDS)
+                val objects = readJson(file, DIR_OBJECTS)
 
-                val fileLayer1 = File(file, "$DIR_ORES_L1.json")
-                if (!fileLayer1.canRead()) fileLayer1.createNewFile()
-                val layer1 = gson.fromJson(fileLayer1.readText(), JsonObject::class.java)
-
-                val fileFluids = File(file, "$DIR_FLUIDS.json")
-                if (!fileFluids.canRead()) fileFluids.createNewFile()
-                val fluids = gson.fromJson(fileFluids.readText(), JsonObject::class.java)
-
-                dimension.load(layer0, layer1, fluids)
+                dimension.load(layer0, layer1, fluids, objects)
                 dimensions[dim] = dimension
             }
 
@@ -55,6 +50,12 @@ abstract class VirtualWorldCache {
             e.printStackTrace()
             false
         }
+    }
+
+    private fun readJson(file: File, dirName: String): JsonObject? {
+        val fileTarget = File(file, "$dirName.json")
+        if (!fileTarget.canRead()) fileTarget.createNewFile()
+        return gson.fromJson(fileTarget.readText(), JsonObject::class.java)
     }
 
     fun saveCache(worldId: String) {
@@ -66,21 +67,10 @@ abstract class VirtualWorldCache {
                 val dimFolder = File(worldCacheDirectory, "DIM$dimId")
                 dimFolder.mkdirs()
 
-                val layer0 = cache.saveOreChunksLayer0()
-
-                val fileLayer0 = File(dimFolder, "$DIR_ORES_L0.json")
-                if (!fileLayer0.canRead()) fileLayer0.createNewFile()
-                fileLayer0.writeText(layer0.toString())
-
-                val layer1 = cache.saveOreChunksLayer1()
-                val fileLayer1 = File(dimFolder, "$DIR_ORES_L1.json")
-                if (!fileLayer1.canRead()) fileLayer1.createNewFile()
-                fileLayer1.writeText(layer1.toString())
-
-                val fluids = cache.saveFluidsChunks()
-                val fileFluids = File(dimFolder, "$DIR_FLUIDS.json")
-                if (!fileFluids.canRead()) fileFluids.createNewFile()
-                fileFluids.writeText(fluids.toString())
+                saveJson(dimFolder, cache.saveOreChunksLayer0(), DIR_ORES_L0)
+                saveJson(dimFolder, cache.saveOreChunksLayer1(), DIR_ORES_L1)
+                saveJson(dimFolder, cache.saveFluidsChunks(), DIR_FLUIDS)
+                saveJson(dimFolder, cache.saveObjects(), DIR_OBJECTS)
 
             }
         } catch (e: Exception) {
@@ -88,34 +78,51 @@ abstract class VirtualWorldCache {
         }
     }
 
+    private fun saveJson(dimFolder: File, cache: JsonElement, dirName: String) {
+        val fileTarget = File(dimFolder, "$dirName.json")
+        if (!fileTarget.canRead()) fileTarget.createNewFile()
+        fileTarget.writeText(cache.toString())
+    }
 
-    fun putOre(layer: Int, veinPosition: CacheOreVein) {
-        var dimension = dimensions[veinPosition.dimension]
+    private fun getOrCreateCache(dimId: Int): DimensionCache {
+        var dimension = dimensions[dimId]
 
         if (dimension == null) {
-            dimension = DimensionCache(veinPosition.dimension)
-            dimensions[veinPosition.dimension] = dimension
+            dimension = DimensionCache(dimId)
+            dimensions[dimId] = dimension
         }
+        return dimension
+    }
 
-        dimension.putOre(layer, veinPosition)
+    fun putOre(layer: Int, veinPosition: CacheOreVein) {
+        getOrCreateCache(veinPosition.dimension).putOre(layer, veinPosition)
     }
 
     fun getOre(layer: Int, dimId: Int, x: Int, z: Int): CacheOreVein? {
-        return dimensions[dimId]?.getOreVein(layer, x, z)
+        return getOrCreateCache(dimId).getOreVein(layer, x, z)
     }
 
     fun putFluid(veinPosition: VirtualFluidVeinPosition) {
-        var dimension = dimensions[veinPosition.dimId]
-
-        if (dimension == null) {
-            dimension = DimensionCache(veinPosition.dimId)
-            dimensions[veinPosition.dimId] = dimension
-        }
-
-        dimension.putFluid(veinPosition)
+        getOrCreateCache(veinPosition.dimId).putFluid(veinPosition)
     }
 
     fun getFluid(dimId: Int, x: Int, z: Int): VirtualFluidVeinPosition? {
-        return dimensions[dimId]?.getFluidVein(x, z)
+        return getOrCreateCache(dimId).getFluidVein(x, z)
+    }
+
+    fun putObjectElement(element: CacheObjectChunk.ObjectElement, dimId: Int, x: Int, z: Int) {
+        getOrCreateCache(dimId).putObjectElement(element, x, z)
+    }
+
+    fun putObjectChunk(obj: CacheObjectChunk, dimId: Int, x: Int, z: Int) {
+        getOrCreateCache(dimId).putObjectChunk(obj, x, z)
+    }
+
+    fun getObjectChunk(dimId: Int, x: Int, z: Int): CacheObjectChunk? {
+        return getOrCreateCache(dimId).getObjectChunk(x, z)
+    }
+
+    fun removeObjectChunk(element: CacheObjectChunk.ObjectElement, dimId: Int, x: Int, z: Int) {
+        return getOrCreateCache(dimId).removeObjectChunk(element, x, z)
     }
 }

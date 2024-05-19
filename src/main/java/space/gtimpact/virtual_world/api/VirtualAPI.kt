@@ -1,13 +1,24 @@
 package space.gtimpact.virtual_world.api
 
+import com.google.common.io.ByteStreams
+import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.init.Blocks
+import net.minecraft.item.ItemStack
 import net.minecraft.world.ChunkCoordIntPair
+import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.DimensionManager
 import space.gtimpact.virtual_world.api.ResourceGenerator.getVeinChunks
 import space.gtimpact.virtual_world.config.Config
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_FLUIDS
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_ORES
+import space.gtimpact.virtual_world.network.SetObjectToChunk
+import space.gtimpact.virtual_world.network.sendPacket
+import space.gtimpact.virtual_world.util.ItemStackByteUtil
 import java.util.*
+import kotlin.math.floor
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 /**
  * Virtual Ore API
@@ -260,4 +271,48 @@ object VirtualAPI {
         VIRTUAL_FLUIDS += vein
     }
     //endregion
+
+    @JvmStatic
+    fun addCustomObject(stack: ItemStack, label: String, player: EntityPlayerMP) {
+        val data = ByteStreams.newDataOutput()
+        val dataStack = ItemStackByteUtil.writeItemStackToDataOutput(stack)
+
+        data.write(dataStack)
+        data.writeUTF(label)
+        data.writeInt(player.worldObj.provider.dimensionId)
+        data.writeInt(round(player.posX).toInt())
+        data.writeInt(round(player.posZ).toInt())
+
+        player.sendPacket(SetObjectToChunk.transaction(data))
+    }
+
+    @JvmStatic
+    fun addCustomObject(world: World, obj: ObjectIndicator, x: Int, z: Int) {
+        if (!world.isRemote) actionCustomObject(world, obj, x, z, false)
+    }
+
+    @JvmStatic
+    fun removeCustomObject(world: World, obj: ObjectIndicator, x: Int, z: Int) {
+        if (!world.isRemote) actionCustomObject(world, obj, x, z, true)
+    }
+
+    @Suppress("UnstableApiUsage")
+    private fun actionCustomObject(world: World, obj: ObjectIndicator, x: Int, z: Int, isRemove: Boolean) {
+        val data = ByteStreams.newDataOutput()
+        val dataStack = ItemStackByteUtil.writeItemStackToDataOutput(obj.getStack())
+
+        data.writeBoolean(isRemove) //isRemove
+        data.write(dataStack) //stack
+        data.writeUTF(obj.getLabel()) //name
+        data.writeInt(world.provider.dimensionId) //dimId
+        data.writeInt(x) //x
+        data.writeInt(z) //z
+
+        val players = obj.playersRecipients()
+        world.playerEntities
+            .filter { players.contains(it.gameProfile.name) }
+            .forEach {
+                it.sendPacket(SetObjectToChunk.transaction(data))
+            }
+    }
 }
