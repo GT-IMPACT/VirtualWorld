@@ -10,6 +10,7 @@ import journeymap.client.render.draw.DrawUtil
 import journeymap.client.render.map.GridRenderer
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
+import net.minecraft.util.StatCollector
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Keyboard.KEY_LSHIFT
 import org.lwjgl.input.Keyboard.isKeyDown
@@ -102,10 +103,11 @@ class ObjectsDrawStep(private val location: ObjectsLocation) : DrawStep {
             val x = pixel.getX()
             val y = pixel.getY()
 
-            ItemStackRenderer.renderItemStack(stack, x.toInt(), y.toInt(), overlayText = null)
 
-            if (isKeyDown(KEY_LSHIFT)) DrawUtil.drawLabel(
-                name,
+            ItemStackRenderer.renderItemStack(stack, x.toInt(), y.toInt(), overlayText = null, scale = 2f)
+
+            DrawUtil.drawLabel(
+                StatCollector.translateToLocal(name),
                 x,
                 y - 10,
                 DrawUtil.HAlign.Right,

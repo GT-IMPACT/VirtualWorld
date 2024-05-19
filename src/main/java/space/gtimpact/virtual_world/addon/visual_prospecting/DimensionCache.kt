@@ -304,9 +304,7 @@ class DimensionCache(private val dimId: Int) {
     fun removeObjectChunk(element: CacheObjectChunk.ObjectElement, x: Int, z: Int) {
         val key = keyOfCoords(x, z)
         customObject[key]?.also { cache ->
-            val list = cache.elements.toMutableList()
-            list.removeIf { it == element }
-            customObject[key] = cache.copy(elements = list)
+            customObject.replace(key, cache.copy(elements = cache.elements.mapNotNull { if (it.name == element.name) null else it }))
         }
     }
 }

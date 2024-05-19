@@ -15,7 +15,7 @@ object ItemStackRenderer {
     private val renderItem: RenderItem = RenderItem.getInstance()
     private val fontRenderer: FontRenderer = Minecraft.getMinecraft().fontRenderer
 
-    fun renderItemStack(stack: ItemStack?, x: Int, y: Int, overlayText: String? = null) {
+    fun renderItemStack(stack: ItemStack?, x: Int, y: Int, overlayText: String? = null, scale: Float = 1.0f) {
         if (stack == null) return
 
         GL11.glPushMatrix()
@@ -25,8 +25,12 @@ object ItemStackRenderer {
         GL11.glEnable(GL11.GL_BLEND)
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
 
+        GL11.glScalef(scale, scale, scale)
+
         renderItem.renderItemAndEffectIntoGUI(fontRenderer, Minecraft.getMinecraft().textureManager, stack, x, y)
         renderItem.renderItemOverlayIntoGUI(fontRenderer, Minecraft.getMinecraft().textureManager, stack, x, y, overlayText)
+
+        GL11.glScalef(1f, 1f, 1f)
 
         RenderHelper.disableStandardItemLighting()
         GL11.glDisable(GL11.GL_ALPHA_TEST)
