@@ -3,32 +3,52 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
-    includeBuild("build-logic")
+    includeBuild("remote-build-logic")
     repositories {
-        maven("https://maven.accident.space/repository/maven-public/")
-        maven("http://jenkins.usrv.eu:8081/nexus/content/groups/public/") {
-            isAllowInsecureProtocol = true
+        maven("https://maven.accident.space/repository/maven-public/") {
+            mavenContent {
+                includeGroup("space.impact")
+                includeGroupByRegex("space\\.impact\\..+")
+            }
+        }
+        maven("https://nexus.gtnewhorizons.com/repository/public/") {
+            mavenContent {
+                includeGroup("com.gtnewhorizons")
+                includeGroupByRegex("com\\.gtnewhorizons\\..+")
+            }
         }
         maven("https://maven.minecraftforge.net")
         maven("https://plugins.gradle.org/m2/")
-        gradlePluginPortal()
         mavenCentral()
-        mavenLocal()
     }
 }
 
 dependencyResolutionManagement {
     repositories {
-        maven("https://maven.accident.space/repository/maven-public/")
-        maven("http://jenkins.usrv.eu:8081/nexus/content/groups/public/") {
-            isAllowInsecureProtocol = true
+        maven("https://maven.accident.space/repository/maven-public/") {
+            mavenContent {
+                includeGroup("space.impact")
+                includeGroupByRegex("space\\.impact\\..+")
+            }
+        }
+        maven("https://nexus.gtnewhorizons.com/repository/public/") {
+            mavenContent {
+                includeGroup("com.gtnewhorizons")
+                includeGroupByRegex("com\\.gtnewhorizons\\..+")
+            }
         }
         maven("https://maven.minecraftforge.net")
         maven("https://plugins.gradle.org/m2/")
-        gradlePluginPortal()
         mavenCentral()
-        mavenLocal()
+    }
+
+    versionCatalogs {
+        create("libs") {
+            from(files("remote-build-logic/libs.versions.toml"))
+        }
     }
 }
 
-rootProject.name = "VirtualWorld"
+plugins {
+    id("com.gtnewhorizons.gtnhsettingsconvention") version "1.0.32"
+}

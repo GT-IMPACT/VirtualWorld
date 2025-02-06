@@ -1,31 +1,42 @@
+import settings.getVersionMod
+
 plugins {
-    alias(libs.plugins.buildconfig)
-    id("minecraft")
+    alias(libs.plugins.setup.minecraft)
+    alias(libs.plugins.setup.publish)
+    id(libs.plugins.buildconfig.get().pluginId)
+}
+
+val modId: String by extra
+val modName: String by extra
+val modGroup: String by extra
+val modAdapter: String by extra
+
+extra.set("modVersion",getVersionMod())
+
+buildConfig {
+    packageName(modGroup)
+    buildConfigField("String", "MODID", "\"${modId}\"")
+    buildConfigField("String", "MODNAME", "\"${modName}\"")
+    buildConfigField("String", "VERSION", "\"${getVersionMod()}\"")
+    buildConfigField("String", "GROUPNAME", "\"${modGroup}\"")
+    buildConfigField("String", "MODADAPTER", "\"${modAdapter}\"")
+    buildConfigField("String", "ASSETS", "\"virtualores\"")
+    useKotlinOutput { topLevelConstants = true }
 }
 
 repositories {
-    maven("https://maven.accident.space/repository/maven-public/")
-    mavenCentral()
-    maven("https://jitpack.io")
-    maven("https://cursemaven.com")
-    mavenLocal()
+    maven("https://maven.accident.space/repository/maven-public/") {
+        mavenContent {
+            includeGroup("space.impact")
+            includeGroupByRegex("space\\.impact\\..+")
+        }
+    }
 }
-
 
 dependencies {
     implementation("com.github.GTNewHorizons:CodeChickenLib:1.1.10:dev")
     api("com.github.GTNewHorizons:CodeChickenCore:1.1.13:dev")
     api("com.github.GTNewHorizons:NotEnoughItems:2.4.13-GTNH:dev")
-    api("space.impact:packet_network:1.1.3")
-    api("com.github.GT-IMPACT:VisualProspecting:1.3.0") {
-        exclude("io.github.legacymoddingmc")
-    }
-    api("space.impact:forgelin:2.0.+") { isChanging = true }
-    api("curse.maven:journeymap-32274:4500659")
-}
-
-val modId: String by extra
-
-tasks.runClient.configure {
-    extraArgs.addAll("--mixin", "mixins.$modId.json")
+    api("space.impact:Packet-Network:1.1.8:dev")
+    api("space.impact:VisualProspecting:1.3.2:dev")
 }

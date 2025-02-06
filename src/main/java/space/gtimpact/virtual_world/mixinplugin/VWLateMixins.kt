@@ -5,6 +5,7 @@ import com.gtnewhorizon.gtnhmixins.LateMixin
 
 @LateMixin
 class VWLateMixins : ILateMixinLoader {
+
     override fun getMixinConfig(): String {
         return "mixins.impact_vw.late.json"
     }
