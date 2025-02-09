@@ -2,9 +2,12 @@ package space.gtimpact.virtual_world.network
 
 import net.minecraft.client.Minecraft
 import net.minecraft.server.MinecraftServer
-import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualFluidVeinPosition
-import space.gtimpact.virtual_world.addon.visual_prospecting.cache.CacheObjectChunk
+import net.minecraft.util.ChatComponentTranslation
+import net.minecraft.util.EnumChatFormatting
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.CacheObjectPoint
 import space.gtimpact.virtual_world.addon.visual_prospecting.cache.ClientVirtualWorldCache
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.PutDataStatus
+import space.gtimpact.virtual_world.addon.visual_prospecting.readPacketDataFluidVein
 import space.gtimpact.virtual_world.addon.visual_prospecting.readPacketDataOreVein
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.common.items.ScannerTool
@@ -13,26 +16,30 @@ import space.impact.packet_network.network.packets.createPacketStream
 
 val prospectorPacketFluid = createPacketStream(2000) { isServer, read ->
     if (!isServer) {
-        read.readInt()
-        val count = read.readInt()
+        val veins = read.readPacketDataFluidVein()
 
-        repeat(count) {
+        var status = arrayListOf<PutDataStatus>()
 
-            val veinId = read.readInt()
-            val x = read.readInt()
-            val z = read.readInt()
-            val size = read.readInt()
+        veins.forEach { data ->
 
-            VirtualAPI.getRegisterFluids().find { it.id == veinId }?.also {
-                val veinPos = VirtualFluidVeinPosition(
-                    dimId = dimId,
-                    vein = it,
-                    x = x,
-                    z = z,
-                    size = size,
-                )
-                ClientVirtualWorldCache.putFluid(veinPos)
+            VirtualAPI.getRegisterFluids().find { it.id == data.veinId }?.also { veinData ->
+
+                status += ClientVirtualWorldCache.putFluid(data.apply {
+                    dimension = dimId
+                    vein = veinData
+                })
             }
+        }
+
+
+        if (status.isNotEmpty()) {
+            ChatComponentTranslation("virtual_world.prospected.fluids", status.count { it == PutDataStatus.NEW }, status.count { it == PutDataStatus.UPDATE })
+                .apply {
+                    chatStyle.setItalic(true)
+                    chatStyle.setColor(EnumChatFormatting.GRAY)
+                }.also { veinNotification ->
+                    Minecraft.getMinecraft().thePlayer.addChatMessage(veinNotification)
+                }
         }
     }
 }
@@ -40,13 +47,28 @@ val prospectorPacketFluid = createPacketStream(2000) { isServer, read ->
 val prospectorPacketOre = createPacketStream(2001) { isServer, read ->
     if (!isServer) {
         val scan = read.readPacketDataOreVein()
+
+        var status = arrayListOf<PutDataStatus>()
+
         scan.veins.forEach { data ->
-            VirtualAPI.getRegisterOres().find { it.id == data.veinId }?.also {
-                ClientVirtualWorldCache.putOre(scan.layer, data.apply {
+
+            VirtualAPI.getRegisterOres().find { it.id == data.veinId }?.also { veinData ->
+
+                status += ClientVirtualWorldCache.putOre(scan.layer, data.apply {
                     dimension = dimId
-                    vein = it
+                    vein = veinData
                 })
             }
+        }
+
+        if (status.isNotEmpty()) {
+            ChatComponentTranslation("virtual_world.prospected.ores", status.count { it == PutDataStatus.NEW }, status.count { it == PutDataStatus.UPDATE })
+                .apply {
+                    chatStyle.setItalic(true)
+                    chatStyle.setColor(EnumChatFormatting.GRAY)
+                }.also { veinNotification ->
+                    Minecraft.getMinecraft().thePlayer.addChatMessage(veinNotification)
+                }
         }
     }
 }
@@ -67,7 +89,7 @@ val notifyClientSavePacket = createPacketStream(2002) { isServer, data ->
     }
 }
 
-val MetaBlockGlassPacket = createPacketStream(2003) {  isServer, data  ->
+val MetaBlockGlassPacket = createPacketStream(2003) { isServer, data ->
     if (isServer) {
         serverPlayer?.heldItem?.also { stack ->
             (stack.item as ScannerTool).changeLayer(serverPlayer!!, stack)
@@ -75,18 +97,19 @@ val MetaBlockGlassPacket = createPacketStream(2003) {  isServer, data  ->
     }
 }
 
-val SetObjectToChunk = createPacketStream(2004) { isServer, data ->
+val SetObjectToChunkPacket = createPacketStream(2004) { isServer, data ->
     if (!isServer) {
         val isRemove = data.readBoolean()
         val stack = ItemStackByteUtil.readItemStackFromDataInput(data) ?: return@createPacketStream
-        val element = CacheObjectChunk.ObjectElement(name = data.readUTF(), stack = stack)
+        val element = CacheObjectPoint.ObjectElement(name = data.readUTF(), stack = stack)
         val dim = data.readInt()
         val x = data.readInt()
         val z = data.readInt()
 
-        if (isRemove)
-            ClientVirtualWorldCache.removeObjectChunk(dimId = dim, x = x, z = z, element = element)
-        else
-            ClientVirtualWorldCache.putObjectElement(dimId = dim, x = x, z = z, element = element)
+        if (isRemove) {
+            ClientVirtualWorldCache.removeObjectChunk(dimId = dim, blockX = x, blockZ = z, element = element)
+        } else {
+            ClientVirtualWorldCache.putObjectElement(dimId = dim, blockX = x, blockZ = z, element = element)
+        }
     }
 }

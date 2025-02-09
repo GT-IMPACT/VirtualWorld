@@ -1,7 +1,5 @@
 package space.gtimpact.virtual_world.api.fluids
 
-import java.util.*
-
 /**
  * Vein with Virtual Fluid
  */

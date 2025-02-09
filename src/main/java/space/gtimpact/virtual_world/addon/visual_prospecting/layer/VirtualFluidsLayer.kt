@@ -11,13 +11,12 @@ import journeymap.client.render.draw.DrawUtil
 import journeymap.client.render.map.GridRenderer
 import net.minecraft.client.Minecraft
 import org.lwjgl.input.Keyboard
-import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualFluidVeinPosition
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.CacheFluidVein
 import space.gtimpact.virtual_world.addon.visual_prospecting.cache.ClientVirtualWorldCache
 import space.gtimpact.virtual_world.api.ResourceGenerator
 import space.gtimpact.virtual_world.util.Math.repeatOffset
 import java.awt.geom.Point2D
 import kotlin.math.pow
-
 
 class VirtualFluidsLayerManager(buttonManager: ButtonManager) : LayerManager(buttonManager) {
 
@@ -43,9 +42,16 @@ class VirtualFluidsLayerManager(buttonManager: ButtonManager) : LayerManager(but
 
         repeatOffset(minX, maxX, 4) { chunkX ->
             repeatOffset(minZ, maxZ, 4) { chunkZ ->
-                val fluid = ClientVirtualWorldCache.getFluid(dim, chunkX, chunkZ)
-                if (fluid != null)
-                    locations.add(VirtualFluidsLocation(fluid.copy(x = chunkX, z = chunkZ)))
+
+                ClientVirtualWorldCache.getFluid(dim, chunkX, chunkZ)?.also { cache ->
+
+                    locations += VirtualFluidsLocation(
+                        pos = cache.copy(x = chunkX, z = chunkZ).apply {
+                            dimension = cache.dimension
+                            vein = cache.vein
+                        }
+                    )
+                }
             }
         }
 
@@ -82,11 +88,11 @@ class VirtualFluidsLayerRender(layerManager: LayerManager) : LayerRenderer(layer
 
 }
 
-class VirtualFluidsLocation(val pos: VirtualFluidVeinPosition) : ILocationProvider {
+class VirtualFluidsLocation(val pos: CacheFluidVein) : ILocationProvider {
 
 
     override fun getDimensionId(): Int {
-        return pos.dimId
+        return pos.dimension
     }
 
     override fun getBlockX(): Double {
@@ -107,9 +113,10 @@ class VirtualFluidsDrawStep(private val location: VirtualFluidsLocation) : DrawS
 
     override fun draw(draggedPixelX: Double, draggedPixelY: Double, gridRenderer: GridRenderer, drawScale: Float, fontScale: Double, rotation: Double) {
 
-        val vein = location.pos.vein
+        val vein = location.pos.vein ?: return
+        val size = location.pos.chunks.sumOf { it.size } / 16
 
-        if (!vein.isHidden && vein.rangeSize.last > 0 && location.pos.size > 0) {
+        if (!vein.isHidden && vein.rangeSize.last > 0 && size > 0) {
 
             val blockSize = 2.0.pow(gridRenderer.zoom)
 
@@ -139,10 +146,10 @@ class VirtualFluidsDrawStep(private val location: VirtualFluidsLocation) : DrawS
             DrawUtil.drawRectangle(pixel.getX() + halfBlock, pixel.getY() + halfBlock, halfBlock, chunk, borderColor, borderAlpha)
 
             //full
-            DrawUtil.drawRectangle(pixel.getX() + halfBlock * 2, pixel.getY() + halfBlock * 2, fullWidth, fullWidth, borderColor, 225 * location.pos.size / 100)
+            DrawUtil.drawRectangle(pixel.getX() + halfBlock * 2, pixel.getY() + halfBlock * 2, fullWidth, fullWidth, borderColor, 225 * size / 100)
 
             if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) DrawUtil.drawLabel(
-                "${location.pos.size}%",
+                "${size}%",
                 pixel.getX() + 2 * 4 * blockSize,
                 pixel.getY() + 10 * 4 * blockSize,
                 DrawUtil.HAlign.Right,

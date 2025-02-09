@@ -1,4 +1,8 @@
 item.virtual_ore_scanner.name=Подземный сканнер
+item.virtual_world_fluid_display.name=Экран для отображения жидкостей
+
+virtual_world.prospected.ores=Вы нашли %s новых рудных месторождений и %s обновлены!
+virtual_world.prospected.fluids=Вы нашли %s новых жидкостных месторождений и %s обновлены!
 
 scanner.change_layer=Выбран рудный слой #
 scanner.change_mode.0=Выбран режим: §aПодземные Руды

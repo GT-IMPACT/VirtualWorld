@@ -5,19 +5,18 @@ import codechicken.nei.PositionedStack
 import codechicken.nei.recipe.*
 import cpw.mods.fml.common.event.FMLInterModComms
 import net.minecraft.init.Blocks
-import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
+import space.gtimpact.virtual_world.ASSETS
+import space.gtimpact.virtual_world.MODID
+import space.gtimpact.virtual_world.MODNAME
+import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.addon.nei.NEIBoostrapConfig
 import space.gtimpact.virtual_world.addon.nei.other.FixedPositionedStack
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualOreVein
 import space.gtimpact.virtual_world.extras.drawText
-import space.gtimpact.virtual_world.ASSETS
-import space.gtimpact.virtual_world.MODID
-import space.gtimpact.virtual_world.MODNAME
-import space.gtimpact.virtual_world.VirtualOres
 import java.awt.Color
 import java.awt.Rectangle
 
@@ -25,15 +24,19 @@ class NeiOreDimensionsHandler : TemplateRecipeHandler() {
 
     private val registerOres = run {
         val map = hashMapOf<String, List<VirtualOreVein>>()
-        VirtualAPI.VIRTUAL_ORES.flatMap { it.dimensions }.distinct().forEach {
-            val list = arrayListOf<VirtualOreVein>()
-            VirtualAPI.VIRTUAL_ORES.forEach { vein ->
-                if (vein.dimensions.contains(it)) {
-                    list += vein
+        VirtualAPI.VIRTUAL_ORES
+            .filter { !it.isHidden }
+            .flatMap { it.dimensions }
+            .distinct()
+            .forEach {
+                val list = arrayListOf<VirtualOreVein>()
+                VirtualAPI.VIRTUAL_ORES.forEach { vein ->
+                    if (vein.dimensions.contains(it)) {
+                        list += vein
+                    }
                 }
+                map[it.second] = list
             }
-            map[it.second] = list
-        }
         map.map { it.key to it.value }
     }
 
@@ -91,19 +94,35 @@ class NeiOreDimensionsHandler : TemplateRecipeHandler() {
         drawText(164 - GuiDraw.getStringWidth("Use Shift"), 0, "Use Shift", Color(84, 81, 81).hashCode())
         val oreVeins = mutableListOf<String>()
 
-        ore.second.take(29).forEach { virtualOreVein ->
-            oreVeins.add(virtualOreVein.name.take(13) + if (virtualOreVein.name.length > 13) ".." else "")
+        ore.second.forEach { virtualOreVein ->
+            oreVeins.add(virtualOreVein.name)
         }
-
-        if (ore.second.size >= 30)
-            oreVeins.add("and more..")
 
         ttDisplayed = false
         if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
-            oreVeins.chunked(15).forEachIndexed { column, veins ->
-                val w = if (column > 0) calculateMaxW(veins) else 0
-                GuiDraw.drawMultilineTip( -2 + 15 * column + w, 0, veins)
+            val nextPage = "Next page ->"
+            val page = when {
+                Keyboard.isKeyDown(Keyboard.KEY_2) -> 1 to nextPage
+                Keyboard.isKeyDown(Keyboard.KEY_3) -> 2 to nextPage
+                Keyboard.isKeyDown(Keyboard.KEY_4) -> 3 to nextPage
+                Keyboard.isKeyDown(Keyboard.KEY_5) -> 4 to nextPage
+                Keyboard.isKeyDown(Keyboard.KEY_6) -> 5 to nextPage
+                Keyboard.isKeyDown(Keyboard.KEY_7) -> 6 to nextPage
+                Keyboard.isKeyDown(Keyboard.KEY_8) -> 7 to nextPage
+                Keyboard.isKeyDown(Keyboard.KEY_9) -> 8 to ""
+                else -> 0 to "Next page, press key [1-9]"
             }
+
+            oreVeins
+                .chunked(12)
+                .getOrNull(page.first)
+                .orEmpty()
+                .chunked(12)
+                .forEachIndexed { index, veins ->
+                    val data = if (veins.size == 12) veins + " " + page.second else veins
+                    GuiDraw.drawMultilineTip(-2 + 15 * index, 0, data)
+                }
+
             ttDisplayed = true
         }
     }
@@ -182,17 +201,18 @@ class NeiOreDimensionsHandler : TemplateRecipeHandler() {
         constructor(pair: Pair<String, List<VirtualOreVein>>) {
             this.ore = pair
 
-            val stacks = hashSetOf<Item>()
+            val stacks = hashSetOf<ItemStack>()
             for (vein in ore.second) {
-                for (stack in vein.ores) {
-                    stacks.add(stack.ore.item)
+                vein.ores.firstOrNull()?.also { component ->
+                    stacks.add(component.ore)
                 }
             }
+
             var y = 0
             var count = 0
 
-            stacks.forEachIndexed { index, itemStack ->
-                mOutputs.add(FixedPositionedStack(ItemStack(itemStack), 4 + index % 9 * 18, 20 + y * 18))
+            stacks.take(63).forEachIndexed { index, itemStack ->
+                mOutputs.add(FixedPositionedStack(itemStack, 4 + index % 9 * 18, 20 + y * 18))
                 count++
                 if (count == 9) {
                     y++

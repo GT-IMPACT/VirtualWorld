@@ -30,3 +30,4 @@ src/main/generated/
 run/
 runDir/
 .gitattributes
+/run/

@@ -1,11 +1,9 @@
 package space.gtimpact.virtual_world.proxy
 
 import cpw.mods.fml.common.FMLCommonHandler
-import cpw.mods.fml.common.Loader
 import cpw.mods.fml.common.event.*
 import net.minecraftforge.common.MinecraftForge
-import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualProspectingIntegration
-import space.gtimpact.virtual_world.api.*
+import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.common.items.ScannerTool
 import space.gtimpact.virtual_world.common.world.VirtualWorldSaveData
 import space.gtimpact.virtual_world.config.Config
@@ -20,7 +18,7 @@ open class CommonProxy {
     open fun init(event: FMLInitializationEvent) {
         MinecraftForge.EVENT_BUS.register(VirtualWorldSaveData())
         FMLCommonHandler.instance().bus().register(VirtualWorldSaveData())
-        ScannerTool()
+        ScannerTool.INSTANCE.registerItem()
     }
 
     open fun postInit(event: FMLPostInitializationEvent) {

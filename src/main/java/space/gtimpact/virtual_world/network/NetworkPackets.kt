@@ -10,7 +10,7 @@ fun registerPackets() {
     registerPacket(prospectorPacketOre)
     registerPacket(notifyClientSavePacket)
     registerPacket(MetaBlockGlassPacket)
-    registerPacket(SetObjectToChunk)
+    registerPacket(SetObjectToChunkPacket)
 }
 
 fun EntityPlayer.sendPacket(packet: ImpactPacket) {

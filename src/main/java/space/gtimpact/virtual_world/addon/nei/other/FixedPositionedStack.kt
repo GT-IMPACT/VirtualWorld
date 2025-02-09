@@ -3,7 +3,6 @@ package space.gtimpact.virtual_world.addon.nei.other
 import codechicken.nei.ItemList
 import codechicken.nei.PositionedStack
 import net.minecraft.init.Blocks
-import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
 
 class FixedPositionedStack @JvmOverloads constructor(stack: ItemStack?, x: Int, y: Int, val chance: Int = 0) : PositionedStack(stack, x, y, true) {

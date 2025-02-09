@@ -11,14 +11,15 @@ import journeymap.client.render.map.GridRenderer
 import net.minecraft.client.Minecraft
 import net.minecraft.item.ItemStack
 import net.minecraft.util.StatCollector
-import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Keyboard.KEY_LSHIFT
 import org.lwjgl.input.Keyboard.isKeyDown
-import space.gtimpact.virtual_world.addon.visual_prospecting.cache.*
+import org.lwjgl.opengl.GL11
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.CacheObjectPoint
 import space.gtimpact.virtual_world.addon.visual_prospecting.cache.ClientVirtualWorldCache
 import space.gtimpact.virtual_world.util.ItemStackRenderer
 import space.gtimpact.virtual_world.util.Math.repeatOffset
 import java.awt.geom.Point2D
+import kotlin.math.roundToInt
 
 class ObjectsLayerManager(buttonManager: ButtonManager) : LayerManager(buttonManager) {
 
@@ -39,8 +40,8 @@ class ObjectsLayerManager(buttonManager: ButtonManager) : LayerManager(buttonMan
 
         repeatOffset(minBlockX, maxBlockX, 1) { x ->
             repeatOffset(minBlockZ, maxBlockZ, 1) { z ->
-                ClientVirtualWorldCache.getObjectChunk(dim, x, z)?.also {
-                    locations.add(ObjectsLocation(it))
+                ClientVirtualWorldCache.getObjectChunk(dim, x, z)?.also { cache ->
+                    locations.add(ObjectsLocation(cache))
                 }
             }
         }
@@ -77,18 +78,18 @@ class ObjectsLayerRender(layerManager: LayerManager) : LayerRenderer(layerManage
     }
 }
 
-class ObjectsLocation(val pos: CacheObjectChunk) : ILocationProvider {
+class ObjectsLocation(val pos: CacheObjectPoint) : ILocationProvider {
 
     override fun getDimensionId(): Int {
         return pos.dimId
     }
 
     override fun getBlockX(): Double {
-        return pos.coords.chunkXPos.toDouble()
+        return pos.coords.x.toDouble()
     }
 
     override fun getBlockZ(): Double {
-        return pos.coords.chunkZPos.toDouble()
+        return pos.coords.z.toDouble()
     }
 }
 
@@ -96,20 +97,26 @@ class ObjectsDrawStep(private val location: ObjectsLocation) : DrawStep {
 
     override fun draw(draggedPixelX: Double, draggedPixelY: Double, gridRenderer: GridRenderer, drawScale: Float, fontScale: Double, rotation: Double) {
 
-        val blockAsPixel = gridRenderer.getBlockPixelInGrid(location.blockX, location.blockZ)
+        val blockAsPixel = gridRenderer.getBlockPixelInGrid(location.blockX + .25, location.blockZ + .25)
         val pixel = Point2D.Double(blockAsPixel.getX() + draggedPixelX, blockAsPixel.getY() + draggedPixelY)
 
         location.pos.elements.firstOrNull()?.also {  (name, stack) ->
             val x = pixel.getX()
             val y = pixel.getY()
 
+            val item = ItemStack(stack.item, 0, stack.itemDamage)
 
-            ItemStackRenderer.renderItemStack(stack, x.toInt(), y.toInt(), overlayText = null)
+            GL11.glPushMatrix()
+
+            ItemStackRenderer.renderItemStack(item, x.roundToInt(), y.roundToInt(), overlayText = null)
+
+            val text = StatCollector.translateToLocal(name).take(64)
+            val sizeText = Minecraft.getMinecraft().fontRenderer.getStringWidth(text)
 
             DrawUtil.drawLabel(
-                StatCollector.translateToLocal(name),
-                x,
-                y - 10,
+                text,
+                x - sizeText / 2.25,
+                y - 12,
                 DrawUtil.HAlign.Right,
                 DrawUtil.VAlign.Middle,
                 0,
@@ -120,6 +127,8 @@ class ObjectsDrawStep(private val location: ObjectsLocation) : DrawStep {
                 false,
                 rotation
             )
+
+            GL11.glPopMatrix()
         }
     }
 }

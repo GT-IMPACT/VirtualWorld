@@ -1,11 +1,8 @@
 package space.gtimpact.virtual_world.util
 
 import com.google.gson.*
-import net.minecraft.item.ItemStack
 import net.minecraft.item.Item
-import net.minecraft.nbt.JsonToNBT
-import net.minecraft.nbt.NBTException
-import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.item.ItemStack
 import java.lang.reflect.Type
 
 object ItemStackJsonUtil {

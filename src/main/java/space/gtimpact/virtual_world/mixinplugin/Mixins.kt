@@ -1,9 +1,7 @@
 package space.gtimpact.virtual_world.mixinplugin
 
 import cpw.mods.fml.relauncher.FMLLaunchHandler
-import java.util.*
 import java.util.function.Supplier
-import kotlin.collections.ArrayList
 
 enum class Mixins(builder: Builder) {
 

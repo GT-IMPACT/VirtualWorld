@@ -67,7 +67,7 @@ fun Chunk.getFluidLayer(): FluidVeinCount? {
     return FluidVeinCount(
         vein = type,
         size = tag.getInteger(NBT.SIZE),
-        typeVein = TypeFluidVein.values()
+        typeVein = TypeFluidVein.entries
             .find { it.name == tag.getString(NBT.TYPE_VEIN) } ?: return null
     )
 }
@@ -94,7 +94,7 @@ fun Chunk.saveOreLayer1(type: Int, size: Int) {
     }
 }
 
-fun Chunk.saveFluidLayer(type: Int, size: Int, typeVein: TypeFluidVein) {
+internal fun Chunk.saveFluidLayer(type: Int, size: Int, typeVein: TypeFluidVein) {
     if (this is IModifiableChunk) {
         val tag = getNbt(NBT.FLUID_LAYER) ?: NBTTagCompound()
 
@@ -106,7 +106,7 @@ fun Chunk.saveFluidLayer(type: Int, size: Int, typeVein: TypeFluidVein) {
     }
 }
 
-fun Chunk.extractOreFromChunk(layer: Int, amount: Int): OreVeinCount? {
+internal fun Chunk.extractOreFromChunk(layer: Int, amount: Int): OreVeinCount? {
     return when (layer) {
         0 -> {
             val layer0 = getOreLayer0() ?: return null
@@ -126,7 +126,7 @@ fun Chunk.extractOreFromChunk(layer: Int, amount: Int): OreVeinCount? {
     }
 }
 
-fun Chunk.extractOreFormVein(layer: Int, amount: Int): OreVeinCount? {
+internal fun Chunk.extractOreFormVein(layer: Int, amount: Int): OreVeinCount? {
 
     val chunks = getVeinChunks()
 
@@ -156,17 +156,17 @@ fun Chunk.extractOreFormVein(layer: Int, amount: Int): OreVeinCount? {
     return veinCount
 }
 
-fun Chunk.extractFluidFromChunk(amount: Int): FluidVeinCount? {
+internal fun Chunk.extractFluidFromChunk(amount: Int): FluidVeinCount? {
 
     val layer = getFluidLayer() ?: return null
-    val newSize = layer.size - amount
+    val newSize = max(0, layer.size - amount)
 
     saveFluidLayer(layer.vein.id, newSize, layer.typeVein)
 
     return FluidVeinCount(layer.vein, newSize, layer.typeVein)
 }
 
-fun Chunk.extractFluidFormVein(amount: Int): FluidVeinCount? {
+fun Chunk.extractFluidFromVein(amount: Int): FluidVeinCount? {
 
     val chunks = getVeinChunks()
 
@@ -178,7 +178,7 @@ fun Chunk.extractFluidFormVein(amount: Int): FluidVeinCount? {
     val veinCount = veins.firstOrNull()?.let { vein ->
         FluidVeinCount(
             vein = vein.vein,
-            size = veins.sumOf { it.size } - veins.size * amount,
+            size = max(0, veins.sumOf { it.size } - veins.size * amount),
             typeVein = vein.typeVein,
         )
     }

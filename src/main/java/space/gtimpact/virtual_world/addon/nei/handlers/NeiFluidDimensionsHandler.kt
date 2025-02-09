@@ -5,22 +5,21 @@ import codechicken.nei.PositionedStack
 import codechicken.nei.recipe.*
 import cpw.mods.fml.common.event.FMLInterModComms
 import net.minecraft.init.Blocks
-import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fluids.Fluid
 import net.minecraftforge.fluids.FluidStack
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
+import space.gtimpact.virtual_world.ASSETS
+import space.gtimpact.virtual_world.MODID
+import space.gtimpact.virtual_world.MODNAME
+import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.addon.nei.NEIBoostrapConfig
 import space.gtimpact.virtual_world.addon.nei.other.FixedPositionedStack
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualFluidVein
 import space.gtimpact.virtual_world.api.virtualWorldNeiFluidHandler
 import space.gtimpact.virtual_world.extras.drawText
-import space.gtimpact.virtual_world.ASSETS
-import space.gtimpact.virtual_world.MODID
-import space.gtimpact.virtual_world.MODNAME
-import space.gtimpact.virtual_world.VirtualOres
 import java.awt.Color
 import java.awt.Rectangle
 
@@ -28,15 +27,21 @@ class NeiFluidDimensionsHandler : TemplateRecipeHandler() {
 
     private val registerFluids = run {
         val map = hashMapOf<String, List<VirtualFluidVein>>()
-        VirtualAPI.VIRTUAL_FLUIDS.flatMap { it.dimensions }.distinct().forEach {
-            val list = arrayListOf<VirtualFluidVein>()
-            VirtualAPI.VIRTUAL_FLUIDS.forEach { vein ->
-                if (vein.dimensions.contains(it)) {
-                    list += vein
+
+        VirtualAPI.VIRTUAL_FLUIDS
+            .filter { !it.isHidden }
+            .flatMap { it.dimensions }
+            .distinct()
+            .forEach {
+                val list = arrayListOf<VirtualFluidVein>()
+                VirtualAPI.VIRTUAL_FLUIDS.forEach { vein ->
+                    if (vein.dimensions.contains(it)) {
+                        list += vein
+                    }
                 }
+                map[it.second] = list
             }
-            map[it.second] = list
-        }
+
         map.map { it.key to it.value }
     }
 
@@ -105,7 +110,7 @@ class NeiFluidDimensionsHandler : TemplateRecipeHandler() {
         if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
             oreVeins.chunked(15).forEachIndexed { column, veins ->
                 val w = if (column > 0) calculateMaxW(veins) else 0
-                GuiDraw.drawMultilineTip( -2 + 15 * column + w, 0, veins)
+                GuiDraw.drawMultilineTip(-2 + 15 * column + w, 0, veins)
             }
             ttDisplayed = true
         }

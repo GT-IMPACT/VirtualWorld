@@ -12,7 +12,7 @@ import journeymap.client.render.map.GridRenderer
 import net.minecraft.client.Minecraft
 import org.lwjgl.input.Keyboard.KEY_LSHIFT
 import org.lwjgl.input.Keyboard.isKeyDown
-import space.gtimpact.virtual_world.addon.visual_prospecting.cache.*
+import space.gtimpact.virtual_world.addon.visual_prospecting.cache.CacheOreVein
 import space.gtimpact.virtual_world.addon.visual_prospecting.cache.ClientVirtualWorldCache
 import space.gtimpact.virtual_world.api.ResourceGenerator
 import space.gtimpact.virtual_world.util.Math.repeatOffset
@@ -44,11 +44,14 @@ class VirtualOresLayerManager(private val layer: Int, buttonManager: ButtonManag
         repeatOffset(minX, maxX, 4) { chunkX ->
             repeatOffset(minZ, maxZ, 4) { chunkZ ->
 
-                ClientVirtualWorldCache.getOre(layer, dim, chunkX, chunkZ)?.also {
-                    locations.add(VirtualOresLocation(it.copy(x = chunkX, z = chunkZ).apply {
-                        dimension = it.dimension
-                        vein = it.vein
-                    }))
+                ClientVirtualWorldCache.getOre(layer, dim, chunkX, chunkZ)?.also { cache ->
+
+                    locations += VirtualOresLocation(
+                        pos = cache.copy(x = chunkX, z = chunkZ).apply {
+                            dimension = cache.dimension
+                            vein = cache.vein
+                        }
+                    )
                 }
             }
         }

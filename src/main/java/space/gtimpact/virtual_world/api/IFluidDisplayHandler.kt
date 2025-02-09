@@ -17,5 +17,5 @@ var virtualWorldNeiFluidHandler: IFluidDisplayHandler = object : IFluidDisplayHa
     override fun getFluidFromStack(stack: ItemStack?): FluidStack? = null
     override fun getDrillFluid(): Fluid? = null
     override val itemDisplay: ItemStack? = null
-    override val isModified: Boolean = false
+    override val isModified: Boolean = true
 }

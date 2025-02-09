@@ -10,6 +10,10 @@ import net.minecraftforge.fluids.FluidRegistry
 import net.minecraftforge.fluids.FluidStack
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
+import space.gtimpact.virtual_world.ASSETS
+import space.gtimpact.virtual_world.MODID
+import space.gtimpact.virtual_world.MODNAME
+import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.addon.nei.NEIBoostrapConfig
 import space.gtimpact.virtual_world.addon.nei.other.FixedPositionedStack
 import space.gtimpact.virtual_world.api.TypeFluidVein
@@ -18,10 +22,6 @@ import space.gtimpact.virtual_world.api.VirtualFluidVein
 import space.gtimpact.virtual_world.api.virtualWorldNeiFluidHandler
 import space.gtimpact.virtual_world.config.Config
 import space.gtimpact.virtual_world.extras.drawText
-import space.gtimpact.virtual_world.ASSETS
-import space.gtimpact.virtual_world.MODID
-import space.gtimpact.virtual_world.MODNAME
-import space.gtimpact.virtual_world.VirtualOres
 import java.awt.Color
 import java.awt.Rectangle
 import java.text.NumberFormat
@@ -86,7 +86,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
         val sizeVein = NumberFormat.getNumberInstance().format(ore.rangeSize.first) + " - " + NumberFormat.getNumberInstance().format(ore.rangeSize.last)
         drawText(4, 50, "Size: " + sizeVein + "k cycles", clr)
 
-        TypeFluidVein.values().forEach {
+        TypeFluidVein.entries.forEach {
             when (it) {
                 TypeFluidVein.LP -> if (Config.countWaterForLPDrill > 0) drawText(4, 65, "Low Pressure Consume:", clr)
                 TypeFluidVein.MP -> if (Config.countWaterForMPDrill > 0) drawText(4, 85 + 10, "Medium Pressure Consume:", clr)
@@ -196,7 +196,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
                 mOutputs.add(FixedPositionedStack(stack = stack, x = 4, y = 25))
             }
 
-            TypeFluidVein.values().forEachIndexed { i, type ->
+            TypeFluidVein.entries.forEachIndexed { i, type ->
 
                 val fluidStack = when (type) {
                     TypeFluidVein.LP -> if (Config.countWaterForLPDrill > 0) FluidStack(FluidRegistry.WATER, Config.countWaterForLPDrill) else null

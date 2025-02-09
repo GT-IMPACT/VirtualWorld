@@ -4,7 +4,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import space.gtimpact.virtual_world.addon.visual_prospecting.DimensionCache
-import space.gtimpact.virtual_world.addon.visual_prospecting.VirtualFluidVeinPosition
 import java.io.File
 
 abstract class VirtualWorldCache {
@@ -17,11 +16,6 @@ abstract class VirtualWorldCache {
     }
 
     protected val dimensions: HashMap<Int, DimensionCache> = HashMap()
-
-    private var needsSaving = false
-    protected var oreVeinCacheDirectory: File? = null
-    protected var undergroundFluidCacheDirectory: File? = null
-    private var isLoaded = false
 
     private val gson = Gson()
 
@@ -53,9 +47,11 @@ abstract class VirtualWorldCache {
     }
 
     private fun readJson(file: File, dirName: String): JsonObject? {
-        val fileTarget = File(file, "$dirName.json")
-        if (!fileTarget.canRead()) fileTarget.createNewFile()
-        return gson.fromJson(fileTarget.readText(), JsonObject::class.java)
+        return runCatching {
+            val fileTarget = File(file, "$dirName.json")
+            if (!fileTarget.canRead()) fileTarget.createNewFile()
+            gson.fromJson(fileTarget.readText(), JsonObject::class.java)
+        }.getOrNull()
     }
 
     fun saveCache(worldId: String) {
@@ -79,9 +75,11 @@ abstract class VirtualWorldCache {
     }
 
     private fun saveJson(dimFolder: File, cache: JsonElement, dirName: String) {
-        val fileTarget = File(dimFolder, "$dirName.json")
-        if (!fileTarget.canRead()) fileTarget.createNewFile()
-        fileTarget.writeText(cache.toString())
+        runCatching {
+            val fileTarget = File(dimFolder, "$dirName.json")
+            if (!fileTarget.canRead()) fileTarget.createNewFile()
+            fileTarget.writeText(cache.toString())
+        }
     }
 
     private fun getOrCreateCache(dimId: Int): DimensionCache {
@@ -94,35 +92,50 @@ abstract class VirtualWorldCache {
         return dimension
     }
 
-    fun putOre(layer: Int, veinPosition: CacheOreVein) {
-        getOrCreateCache(veinPosition.dimension).putOre(layer, veinPosition)
+    private inline fun getAndUpdateDimensionCache(dimId: Int, onUpdate: (DimensionCache) -> PutDataStatus): PutDataStatus {
+        val data = getOrCreateCache(dimId)
+        return onUpdate(data)
+    }
+
+    fun putOre(layer: Int, veinPosition: CacheOreVein): PutDataStatus {
+        return getAndUpdateDimensionCache(veinPosition.dimension) { data ->
+            data.putOre(layer, veinPosition)
+        }
     }
 
     fun getOre(layer: Int, dimId: Int, x: Int, z: Int): CacheOreVein? {
         return getOrCreateCache(dimId).getOreVein(layer, x, z)
     }
 
-    fun putFluid(veinPosition: VirtualFluidVeinPosition) {
-        getOrCreateCache(veinPosition.dimId).putFluid(veinPosition)
+    fun putFluid(veinPosition: CacheFluidVein): PutDataStatus {
+        return getAndUpdateDimensionCache(veinPosition.dimension) { data ->
+            data.putFluid(veinPosition)
+        }
     }
 
-    fun getFluid(dimId: Int, x: Int, z: Int): VirtualFluidVeinPosition? {
+    fun getFluid(dimId: Int, x: Int, z: Int): CacheFluidVein? {
         return getOrCreateCache(dimId).getFluidVein(x, z)
     }
 
-    fun putObjectElement(element: CacheObjectChunk.ObjectElement, dimId: Int, x: Int, z: Int) {
-        getOrCreateCache(dimId).putObjectElement(element, x, z)
+    fun putObjectElement(element: CacheObjectPoint.ObjectElement, dimId: Int, blockX: Int, blockZ: Int): PutDataStatus {
+        return getAndUpdateDimensionCache(dimId) { data ->
+            data.putObjectElement(element, blockX, blockZ)
+        }
     }
 
-    fun putObjectChunk(obj: CacheObjectChunk, dimId: Int, x: Int, z: Int) {
-        getOrCreateCache(dimId).putObjectChunk(obj, x, z)
+    fun putObjectChunk(obj: CacheObjectPoint, dimId: Int, blockX: Int, blockZ: Int): PutDataStatus {
+        return getAndUpdateDimensionCache(dimId) { data ->
+            data.putObjectChunk(obj, blockX, blockZ)
+        }
     }
 
-    fun getObjectChunk(dimId: Int, x: Int, z: Int): CacheObjectChunk? {
-        return getOrCreateCache(dimId).getObjectChunk(x, z)
+    fun getObjectChunk(dimId: Int, blockX: Int, blockZ: Int): CacheObjectPoint? {
+        return getOrCreateCache(dimId).getObjectChunk(blockX, blockZ)
     }
 
-    fun removeObjectChunk(element: CacheObjectChunk.ObjectElement, dimId: Int, x: Int, z: Int) {
-        return getOrCreateCache(dimId).removeObjectChunk(element, x, z)
+    fun removeObjectChunk(element: CacheObjectPoint.ObjectElement, dimId: Int, blockX: Int, blockZ: Int): PutDataStatus {
+        return getAndUpdateDimensionCache(dimId) { data ->
+            data.removeObjectChunk(element, blockX, blockZ)
+        }
     }
 }

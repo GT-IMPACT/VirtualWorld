@@ -8,8 +8,6 @@ import space.gtimpact.virtual_world.api.fluids.VeinFluid
 import space.gtimpact.virtual_world.api.ores.ChunkOre
 import space.gtimpact.virtual_world.api.ores.VeinOre
 import space.gtimpact.virtual_world.common.world.IModifiableChunk
-import java.util.ArrayList
-import java.util.HashMap
 import kotlin.random.Random
 
 object ResourceGenerator {

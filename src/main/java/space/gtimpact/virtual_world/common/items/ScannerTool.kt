@@ -17,17 +17,20 @@ import net.minecraft.world.World
 import net.minecraftforge.client.event.MouseEvent
 import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.input.Keyboard
+import space.gtimpact.virtual_world.ASSETS
+import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualAPI.LAYERS_VIRTUAL_ORES
+import space.gtimpact.virtual_world.api.extractFluidFromVein
+import space.gtimpact.virtual_world.api.extractOreFromChunk
 import space.gtimpact.virtual_world.api.prospect.scanFluids
 import space.gtimpact.virtual_world.api.prospect.scanOres
+import space.gtimpact.virtual_world.config.Config
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_SCANNER_TOOL
 import space.gtimpact.virtual_world.extras.send
 import space.gtimpact.virtual_world.extras.toTranslate
-import space.gtimpact.virtual_world.ASSETS
-import space.gtimpact.virtual_world.api.extractOreFromChunk
-import space.gtimpact.virtual_world.config.Config
 import space.gtimpact.virtual_world.network.MetaBlockGlassPacket
 import space.impact.packet_network.network.NetworkHandler.sendToServer
+
 
 class ScannerTool : Item() {
 
@@ -78,6 +81,14 @@ class ScannerTool : Item() {
         }
     }
 
+    fun registerItem() {
+        if (!Config.enableDebug) setMaxStackSize(1)
+        unlocalizedName = "virtual_ore_scanner"
+        if (!IS_DISABLED_SCANNER_TOOL) {
+            GameRegistry.registerItem(this, "virtual_ore_scanner")
+        }
+    }
+
     companion object {
         const val TYPE_ORES = 0
         const val TYPE_FLUIDS = 1
@@ -86,6 +97,8 @@ class ScannerTool : Item() {
 
         const val NBT_TYPE = "type_mode"
         const val NBT_LAYER = "layer_id"
+
+        internal val INSTANCE = ScannerTool()
     }
 
     @SideOnly(Side.CLIENT)
@@ -106,7 +119,7 @@ class ScannerTool : Item() {
         stack: ItemStack,
         player: EntityPlayer,
         tooltip: MutableList<String?>,
-        f3: Boolean
+        f3: Boolean,
     ) {
         val mode = stack.getNBTInt(NBT_TYPE)
         val layer = stack.getNBTInt(NBT_LAYER)
@@ -127,33 +140,39 @@ class ScannerTool : Item() {
         tooltip += "scanner.tooltip.5".toTranslate()
 
         if (Config.enableDebug)
-            tooltip += "2..64 stackSize extract current chunk stackSize * 1000"
-    }
-
-    init {
-        if (!Config.enableDebug) setMaxStackSize(1)
-        unlocalizedName = "virtual_ore_scanner"
-        if (!IS_DISABLED_SCANNER_TOOL) {
-            GameRegistry.registerItem(this, "virtual_ore_scanner")
-        }
+            tooltip += listOf(
+                "2 stackSize create point item",
+                "3..64 stackSize extract current chunk stackSize * 1000",
+            )
     }
 
     override fun onItemRightClick(stack: ItemStack, world: World, player: EntityPlayer): ItemStack? {
         if (!world.isRemote) {
-            when (stack.stackSize) {
 
+            var type = stack.getNBTInt(NBT_TYPE)
+            val layer = if (type == TYPE_ORES) stack.getNBTInt(NBT_LAYER) else 0
+
+            when (stack.stackSize) {
                 //for debug
-                in 2..64 -> if (Config.enableDebug && player.capabilities.isCreativeMode) {
+                2 -> if (player is EntityPlayerMP) {
+                    VirtualAPI.addCustomObject(stack, "Test Point ${world.rand.nextInt(99)}", player)
+                }
+
+                in 3..64 -> if (Config.enableDebug && player.capabilities.isCreativeMode) {
                     val chunk = world.getChunkFromBlockCoords(player.posX.toInt(), player.posZ.toInt())
-                    chunk.extractOreFromChunk(1, 1000 * stack.stackSize)?.also { data ->
-                        player.send("${data.vein}: ${data.size}")
+
+                    when (type) {
+                        TYPE_ORES -> chunk.extractOreFromChunk(layer, 1000 * stack.stackSize)?.also { data ->
+                            player.send("${data.vein.name}: ${data.size}")
+                        }
+
+                        TYPE_FLUIDS -> chunk.extractFluidFromVein(1000 * stack.stackSize / 16)?.also { data ->
+                            player.send("${data.vein.name}: ${data.size}")
+                        }
                     }
                 }
 
                 else -> {
-                    var type = stack.getNBTInt(NBT_TYPE)
-                    val layer = if (type == TYPE_ORES) stack.getNBTInt(NBT_LAYER) else 0
-
                     if (player.isSneaking) {
                         type++
 
@@ -169,7 +188,7 @@ class ScannerTool : Item() {
                         return super.onItemRightClick(stack, world, player)
                     }
 
-                    val radius = 20
+                    val radius = 20 // TODO
 
                     when (type) {
                         TYPE_ORES -> scanOres(world, layer, player as EntityPlayerMP, radius)

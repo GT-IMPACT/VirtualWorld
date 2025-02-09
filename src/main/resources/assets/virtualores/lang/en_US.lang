@@ -1,4 +1,8 @@
 item.virtual_ore_scanner.name=Underground Scanner
+item.virtual_world_fluid_display.name=Fluid Display
+
+virtual_world.prospected.ores=You found %s new ore veins and %s updated!
+virtual_world.prospected.fluids=You found %s new fluid veins and %s updated!
 
 scanner.change_layer=Set ore layer #
 scanner.change_mode.0=Set mod: §aUnderground Ores

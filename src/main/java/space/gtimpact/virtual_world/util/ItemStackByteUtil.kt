@@ -20,6 +20,13 @@ object ItemStackByteUtil {
         return dataOutput.toByteArray()
     }
 
+    fun readItemStackFromDataInput(dataInput: ByteArrayDataInput): ItemStack? {
+        val length = dataInput.readInt()
+        val byteArray = ByteArray(length)
+        dataInput.readFully(byteArray)
+        return byteArrayToItemStack(byteArray)
+    }
+
     private fun itemStackToByteArray(itemStack: ItemStack): ByteArray {
         val nbtTagCompound = NBTTagCompound()
         itemStack.writeToNBT(nbtTagCompound)
@@ -51,12 +58,5 @@ object ItemStackByteUtil {
         }
 
         return ItemStack.loadItemStackFromNBT(nbtTagCompound)
-    }
-
-    fun readItemStackFromDataInput(dataInput: ByteArrayDataInput): ItemStack? {
-        val length = dataInput.readInt()
-        val byteArray = ByteArray(length)
-        dataInput.readFully(byteArray)
-        return byteArrayToItemStack(byteArray)
     }
 }

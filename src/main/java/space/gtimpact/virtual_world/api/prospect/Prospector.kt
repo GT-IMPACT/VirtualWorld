@@ -1,6 +1,12 @@
+@file:Suppress("UnstableApiUsage")
+
 package space.gtimpact.virtual_world.api.prospect
 
+import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.ChatComponentTranslation
+import net.minecraft.util.EnumChatFormatting
+import net.minecraft.util.IChatComponent
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
 import space.gtimpact.virtual_world.addon.visual_prospecting.ProspectorVeinManager
@@ -11,9 +17,7 @@ import space.gtimpact.virtual_world.api.getOreLayer0
 import space.gtimpact.virtual_world.api.getOreLayer1
 import space.gtimpact.virtual_world.common.items.ScannerTool
 import space.gtimpact.virtual_world.network.FindVeinsPacket
-import space.gtimpact.virtual_world.network.VirtualOresNetwork
-import space.gtimpact.virtual_world.network.prospectorPacketFluid
-import space.gtimpact.virtual_world.network.sendPacket
+
 
 @JvmOverloads
 fun scanOres(w: World, layer: Int, player: EntityPlayer, radius: Int, needShowGui: Boolean = true) {
@@ -90,19 +94,7 @@ fun scanFluids(w: World, player: EntityPlayer, radius: Int, needShowGui: Boolean
 //    if (needShowGui)
 //        VirtualOresNetwork.sendToPlayer(packet, player)
 
-    val listInts = arrayListOf<Int>()
-
-    listInts += list.size
-
-    list.forEach {
-        listInts += it.vein.id
-        listInts += it.x
-        listInts += it.z
-        listInts += it.size
-    }
-
-    if (!w.isRemote)
-        player.sendPacket(prospectorPacketFluid.transaction(*listInts.toIntArray()))
+    ProspectorVeinManager.createArea(list, w.getChunkFromChunkCoords(chX, chZ), player)
 }
 
 private fun scanFluidChunk(chunk: Chunk, packet: FindVeinsPacket): VirtualFluidVeinPosition? {

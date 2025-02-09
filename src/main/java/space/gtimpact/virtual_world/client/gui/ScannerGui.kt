@@ -5,9 +5,9 @@ import net.minecraft.util.ResourceLocation
 import net.minecraft.world.ChunkCoordIntPair
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
+import space.gtimpact.virtual_world.ASSETS
 import space.gtimpact.virtual_world.client.gui.widgets.RenderMapTexture
 import space.gtimpact.virtual_world.client.gui.widgets.VeinsGuiScrollingList
-import space.gtimpact.virtual_world.ASSETS
 import java.awt.Color
 import kotlin.math.max
 import kotlin.math.min

@@ -12,7 +12,7 @@ import space.gtimpact.virtual_world.common.world.IWorldNbt;
 import space.gtimpact.virtual_world.extras.NBT;
 import space.gtimpact.virtual_world.util.WorldNBT;
 
-import java.util.*;
+import java.util.HashMap;
 
 @SuppressWarnings("ALL")
 @Mixin(WorldServer.class)
