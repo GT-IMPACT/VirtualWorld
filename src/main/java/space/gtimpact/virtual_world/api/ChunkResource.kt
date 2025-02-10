@@ -4,9 +4,9 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.chunk.Chunk
 import space.gtimpact.virtual_world.api.ResourceGenerator.generateResources
 import space.gtimpact.virtual_world.api.ResourceGenerator.getVeinChunks
-import space.gtimpact.virtual_world.api.VirtualAPI.VIRTUAL_ORES
 import space.gtimpact.virtual_world.api.VirtualAPI.getVirtualFluidVeinById
 import space.gtimpact.virtual_world.api.VirtualAPI.getVirtualOreVeinById
+import space.gtimpact.virtual_world.api.VirtualAPI.virtualOres
 import space.gtimpact.virtual_world.common.world.IModifiableChunk
 import space.gtimpact.virtual_world.extras.NBT
 import kotlin.math.max
@@ -30,7 +30,7 @@ fun Chunk.getOreLayer0(): OreVeinCount? {
     val tag = getNbt(NBT.ORE_LAYER_0) ?: return null
 
     val vein = tag.getInteger(NBT.TYPE_ID).let { id ->
-        VIRTUAL_ORES.find { it.id == id }
+        virtualOres.find { it.id == id }
     } ?: return null
 
     return OreVeinCount(

@@ -28,7 +28,7 @@ import java.text.NumberFormat
 
 class NeiFluidHandler : TemplateRecipeHandler() {
 
-    private val registerFluids = VirtualAPI.VIRTUAL_FLUIDS
+    private val registerFluids = VirtualAPI.virtualFluids
         .filter { !it.isHidden }
         .sortedBy { it.name }
 
@@ -48,7 +48,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
             .setDisplayStack(ItemStack(Blocks.flowing_lava))
             .setMaxRecipesPerPage(2)
             .setHeight(165)
-            .setWidth(200)
+            .setWidth(174)
             .setShiftY(6)
             .build()
 

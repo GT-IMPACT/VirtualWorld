@@ -28,13 +28,13 @@ class NeiFluidDimensionsHandler : TemplateRecipeHandler() {
     private val registerFluids = run {
         val map = hashMapOf<String, List<VirtualFluidVein>>()
 
-        VirtualAPI.VIRTUAL_FLUIDS
+        VirtualAPI.virtualFluids
             .filter { !it.isHidden }
             .flatMap { it.dimensions }
             .distinct()
             .forEach {
                 val list = arrayListOf<VirtualFluidVein>()
-                VirtualAPI.VIRTUAL_FLUIDS.forEach { vein ->
+                VirtualAPI.virtualFluids.forEach { vein ->
                     if (vein.dimensions.contains(it)) {
                         list += vein
                     }
@@ -62,7 +62,7 @@ class NeiFluidDimensionsHandler : TemplateRecipeHandler() {
             .setDisplayStack(ItemStack(Blocks.flowing_lava))
             .setMaxRecipesPerPage(2)
             .setHeight(165)
-            .setWidth(200)
+            .setWidth(174)
             .setShiftY(6)
             .build()
 

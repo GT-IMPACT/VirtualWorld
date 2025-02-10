@@ -58,12 +58,16 @@ object VirtualOres {
     fun postInit(event: FMLPostInitializationEvent) {
         proxy.postInit(event)
         if (Config.enableDebug) {
+
+            val seed = 123456789
+            val rand = Random(seed)
+
             (0..100).forEach {
                 VirtualOreVein(
                     id = 20000 + it,
                     layer = if (it % 2 == 0) 1 else 0,
                     name = if (it == 0) "Empty" else "$it Ore ${if (it % 2 == 0) "L1" else "L0"}",
-                    weight = Random.nextDouble(10.0, 30.0),
+                    weight = rand.nextDouble(10.0, 30.0),
                     rangeSize = 50..300,
                     color = if (it == 0) Color.GREEN.hashCode() else UUID.randomUUID().hashCode(),
                     dimensions = listOf(0 to "Earth", -1 to "Nether", 1 to "End"),
@@ -77,7 +81,7 @@ object VirtualOres {
                 id = 30000,
                 layer = 0,
                 name = "Test Virtual Ore",
-                weight = Random.nextDouble(10.0, 30.0),
+                weight = rand.nextDouble(10.0, 30.0),
                 rangeSize = 50..300,
                 color = Color.GREEN.hashCode(),
                 dimensions = listOf(0 to "Earth", -1 to "Nether", 1 to "End"),

@@ -2,11 +2,7 @@
 
 package space.gtimpact.virtual_world.api.prospect
 
-import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.ChatComponentTranslation
-import net.minecraft.util.EnumChatFormatting
-import net.minecraft.util.IChatComponent
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
 import space.gtimpact.virtual_world.addon.visual_prospecting.ProspectorVeinManager

@@ -14,7 +14,6 @@ import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_ORES
 import space.gtimpact.virtual_world.network.SetObjectToChunkPacket
 import space.gtimpact.virtual_world.network.sendPacket
 import space.gtimpact.virtual_world.util.ItemStackByteUtil
-import java.util.*
 import kotlin.math.round
 
 /**
@@ -23,81 +22,36 @@ import kotlin.math.round
 @Suppress("unused")
 object VirtualAPI {
 
-    var random: Random? = null
-
     /**
      * Set of types Virtual Ores
      */
     @JvmField
-    val VIRTUAL_ORES: HashSet<VirtualOreVein> = HashSet(Config.MAX_SIZE_REGISTERED_VIRTUAL_ORES)
+    val virtualOres: HashSet<VirtualOreVein> = HashSet(Config.MAX_SIZE_REGISTERED_VIRTUAL_ORES)
 
     /**
      * Set of types Virtual Fluids
      */
     @JvmField
-    val VIRTUAL_FLUIDS: HashSet<VirtualFluidVein> = HashSet(Config.MAX_SIZE_REGISTERED_VIRTUAL_ORES)
+    val virtualFluids: HashSet<VirtualFluidVein> = HashSet(Config.MAX_SIZE_REGISTERED_VIRTUAL_ORES)
 
     /**
      * Max layers of Virtual ores
      */
-    @JvmField
-    val LAYERS_VIRTUAL_ORES = 2
+    const val LAYERS_VIRTUAL_ORES = 2
 
     /**
      * Resized Ore Veins
      * First Int = dim
      * Second Int = layer
      */
-    @JvmField
-    var RESIZE_ORE_VEINS: HashMap<Int, Map<Int, List<VirtualOreVein>>> = HashMap()
-
-    /**
-     * Resized Fluid veins
-     * Int = dim
-     */
-    @JvmField
-    var RESIZE_FLUID_VEINS: HashMap<Int, List<VirtualFluidVein>> = HashMap()
-
-    //region Ores
-
-    /**
-     * Get Virtual Ore by layer and dimension
-     *
-     * @param layer layer of virtual ore
-     * @param dim minecraft dimension
-     */
     @JvmStatic
-    fun getRandomVirtualOre(layer: Int, dim: Int): VirtualOreVein? {
-        if (!RESIZE_ORE_VEINS.contains(dim)) return null
-        if (!RESIZE_ORE_VEINS[dim]!!.containsKey(layer)) return null
-        var total = 0.0
-        RESIZE_ORE_VEINS[dim]!![layer]!!.forEach { candidate ->
-            total += candidate.maxWeight
-            candidate.weight = total
-        }
-        val medium = (random?.nextDouble() ?: 0.0) * total
-
-        RESIZE_ORE_VEINS[dim]!![layer]!!.forEach { candidate ->
-            if (candidate.weight > medium) {
-                candidate.reduceWeight()
-                return candidate
-            } else {
-                candidate.increaseWeight()
-            }
-        }
-        return null
-    }
-
-    /**
-     * Resize registered ores
-     */
-    fun resizeOreVeins() {
-        RESIZE_ORE_VEINS.clear()
+    val resizeOreVeins: HashMap<Int, Map<Int, List<VirtualOreVein>>> by lazy {
+        val map = hashMapOf<Int, Map<Int, List<VirtualOreVein>>>()
         for (dim in DimensionManager.getIDs()) {
             val resizedLayersVeins = HashMap<Int, List<VirtualOreVein>>()
             for (layer in 0 until LAYERS_VIRTUAL_ORES) {
                 val list = ArrayList<VirtualOreVein>()
-                for (virtualOre in VIRTUAL_ORES) {
+                for (virtualOre in virtualOres) {
                     if (virtualOre.layer == layer) {
                         for (dimension in virtualOre.dimensions) {
                             if (dimension.first == dim) {
@@ -108,8 +62,30 @@ object VirtualAPI {
                 }
                 resizedLayersVeins[layer] = list
             }
-            RESIZE_ORE_VEINS[dim] = resizedLayersVeins
+            map[dim] = resizedLayersVeins
         }
+        map
+    }
+
+    /**
+     * Resized Fluid veins
+     * Int = dim
+     */
+    @JvmStatic
+    val resizeFluidVeins: HashMap<Int, List<VirtualFluidVein>> by lazy {
+        val map = hashMapOf<Int, List<VirtualFluidVein>>()
+        for (dim in DimensionManager.getIDs()) {
+            val list = ArrayList<VirtualFluidVein>()
+            for (virtualOre in virtualFluids) {
+                for (dimension in virtualOre.dimensions) {
+                    if (dimension.first == dim) {
+                        list += virtualOre
+                    }
+                }
+            }
+            map[dim] = list
+        }
+        map
     }
 
     /**
@@ -119,7 +95,7 @@ object VirtualAPI {
      */
     @JvmStatic
     fun getVirtualOreVeinById(oreId: Int): VirtualOreVein? {
-        return VIRTUAL_ORES.find { it.id == oreId }
+        return virtualOres.find { it.id == oreId }
     }
 
     /**
@@ -127,7 +103,7 @@ object VirtualAPI {
      */
     @JvmStatic
     fun getRegisterOres(): List<VirtualOreVein> {
-        return VIRTUAL_ORES.toList()
+        return virtualOres.toList()
     }
 
     /**
@@ -174,26 +150,26 @@ object VirtualAPI {
     @JvmStatic
     fun registerVirtualOre(vein: VirtualOreVein) {
         if (IS_DISABLED_VIRTUAL_ORES) return
-        if (VIRTUAL_ORES.any { it.id == vein.id }) {
+        if (virtualOres.any { it.id == vein.id }) {
             throw ConcurrentModificationException(
                 "Ore vein must not use the identifier of the other ore vein: ${vein.name}"
             )
         }
-        VIRTUAL_ORES += vein
+        virtualOres += vein
     }
     //endregion
 
     //region Fluids
     @JvmStatic
-    fun getRandomVirtualFluid(dim: Int): VirtualFluidVein? {
-        if (!RESIZE_FLUID_VEINS.contains(dim)) return null
+    fun getRandomVirtualFluid(dim: Int, randomCoefficient: Double): VirtualFluidVein? {
+        if (!resizeFluidVeins.contains(dim)) return null
         var total = 0.0
-        RESIZE_FLUID_VEINS[dim]!!.forEach { candidate ->
+        resizeFluidVeins[dim]!!.forEach { candidate ->
             total += candidate.maxWeight
             candidate.weight = total
         }
-        val medium = (random?.nextDouble() ?: 0.0) * total
-        RESIZE_FLUID_VEINS[dim]!!.forEach { candidate ->
+        val medium = randomCoefficient * total
+        resizeFluidVeins[dim]!!.forEach { candidate ->
             if (candidate.weight > medium) {
                 candidate.reduceWeight()
                 return candidate
@@ -211,25 +187,7 @@ object VirtualAPI {
      */
     @JvmStatic
     fun getVirtualFluidVeinById(oreId: Int): VirtualFluidVein? {
-        return VIRTUAL_FLUIDS.find { it.id == oreId }
-    }
-
-    /**
-     * Resize registered fluids
-     */
-    fun resizeFluidVeins() {
-        RESIZE_FLUID_VEINS.clear()
-        for (dim in DimensionManager.getIDs()) {
-            val list = ArrayList<VirtualFluidVein>()
-            for (virtualOre in VIRTUAL_FLUIDS) {
-                for (dimension in virtualOre.dimensions) {
-                    if (dimension.first == dim) {
-                        list += virtualOre
-                    }
-                }
-            }
-            RESIZE_FLUID_VEINS[dim] = list
-        }
+        return virtualFluids.find { it.id == oreId }
     }
 
     @JvmStatic
@@ -250,7 +208,7 @@ object VirtualAPI {
      */
     @JvmStatic
     fun getRegisterFluids(): List<VirtualFluidVein> {
-        return VIRTUAL_FLUIDS.toList()
+        return virtualFluids.toList()
     }
 
     /**
@@ -260,16 +218,17 @@ object VirtualAPI {
      */
     fun registerVirtualFluid(vein: VirtualFluidVein) {
         if (IS_DISABLED_VIRTUAL_FLUIDS) return
-        if (VIRTUAL_FLUIDS.any { it.id == vein.id }) {
+        if (virtualFluids.any { it.id == vein.id }) {
             throw ConcurrentModificationException(
                 "Fluid vein must not use the identifier of the other ore vein: ${vein.name}"
             )
         }
-        VIRTUAL_FLUIDS += vein
+        virtualFluids += vein
     }
     //endregion
 
     @JvmStatic
+    @Suppress("UnstableApiUsage")
     fun addCustomObject(stack: ItemStack, label: String, player: EntityPlayerMP) {
         val data = ByteStreams.newDataOutput()
         val dataStack = ItemStackByteUtil.writeItemStackToDataOutput(stack)

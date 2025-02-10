@@ -5,8 +5,10 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import cpw.mods.fml.common.registry.GameRegistry
 import cpw.mods.fml.relauncher.Side
 import cpw.mods.fml.relauncher.SideOnly
+import ic2.api.item.IElectricItem
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.IIconRegister
+import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.Item
@@ -18,6 +20,7 @@ import net.minecraftforge.client.event.MouseEvent
 import net.minecraftforge.common.MinecraftForge
 import org.lwjgl.input.Keyboard
 import space.gtimpact.virtual_world.ASSETS
+import space.gtimpact.virtual_world.addon.ic2.IC2ElectricManager
 import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.VirtualAPI.LAYERS_VIRTUAL_ORES
 import space.gtimpact.virtual_world.api.extractFluidFromVein
@@ -30,13 +33,36 @@ import space.gtimpact.virtual_world.extras.send
 import space.gtimpact.virtual_world.extras.toTranslate
 import space.gtimpact.virtual_world.network.MetaBlockGlassPacket
 import space.impact.packet_network.network.NetworkHandler.sendToServer
+import kotlin.math.max
 
+class ScannerTool : Item(), IElectricItem {
 
-class ScannerTool : Item() {
+    companion object {
+        const val TYPE_ORES = 0
+        const val TYPE_FLUIDS = 1
 
-    init {
-        FMLCommonHandler.instance().bus().register(this)
-        MinecraftForge.EVENT_BUS.register(this)
+        const val TYPES_COUNT = 2
+
+        const val NBT_TYPE = "type_mode"
+        const val NBT_LAYER = "layer_id"
+
+        const val COUNT_ITEM_REGISTERED = 4
+
+        internal val INSTANCE = ScannerTool()
+    }
+
+    fun registerItem() {
+        if (!IS_DISABLED_SCANNER_TOOL) {
+
+            setHasSubtypes(true)
+            setUnlocalizedName("virtual_ore_scanner")
+            if (!Config.enableDebug) setMaxStackSize(1)
+
+            GameRegistry.registerItem(INSTANCE, "virtual_ore_scanner")
+
+            FMLCommonHandler.instance().bus().register(this)
+            MinecraftForge.EVENT_BUS.register(this)
+        }
     }
 
     @SideOnly(Side.CLIENT)
@@ -81,37 +107,39 @@ class ScannerTool : Item() {
         }
     }
 
-    fun registerItem() {
-        if (!Config.enableDebug) setMaxStackSize(1)
-        unlocalizedName = "virtual_ore_scanner"
-        if (!IS_DISABLED_SCANNER_TOOL) {
-            GameRegistry.registerItem(this, "virtual_ore_scanner")
-        }
+    override fun getUnlocalizedName(stack: ItemStack): String {
+        return super.getUnlocalizedName() + "." + stack.getItemDamage()
     }
 
-    companion object {
-        const val TYPE_ORES = 0
-        const val TYPE_FLUIDS = 1
-
-        const val TYPES_COUNT = 2
-
-        const val NBT_TYPE = "type_mode"
-        const val NBT_LAYER = "layer_id"
-
-        internal val INSTANCE = ScannerTool()
-    }
-
-    @SideOnly(Side.CLIENT)
-    lateinit var icon: IIcon
+    private val icon = arrayOfNulls<IIcon>(COUNT_ITEM_REGISTERED)
 
     @SideOnly(Side.CLIENT)
     override fun registerIcons(reg: IIconRegister) {
-        icon = reg.registerIcon("$ASSETS:ore_scanner")
+        repeat(COUNT_ITEM_REGISTERED) {
+            icon[it] = reg.registerIcon("$ASSETS:ore_scanner_$it")
+        }
     }
 
     @SideOnly(Side.CLIENT)
-    override fun getIconFromDamage(meta: Int): IIcon {
-        return icon
+    override fun getIconFromDamage(meta: Int): IIcon? {
+        return icon[meta]
+    }
+
+    @SideOnly(Side.CLIENT)
+    override fun getSubItems(item: Item, tab: CreativeTabs?, list: MutableList<ItemStack>) {
+        repeat(COUNT_ITEM_REGISTERED) {
+            list.add(ItemStack(item, 1, it))
+        }
+    }
+
+    fun radiusByStack(stack: ItemStack): Int {
+        return when (stack.itemDamage) {
+            0 -> 8
+            1 -> 12
+            2 -> 16
+            3 -> 40
+            else -> 8
+        }
     }
 
     @SideOnly(Side.CLIENT)
@@ -123,8 +151,8 @@ class ScannerTool : Item() {
     ) {
         val mode = stack.getNBTInt(NBT_TYPE)
         val layer = stack.getNBTInt(NBT_LAYER)
-        // Change scanner mode: SHIFT + Right Click
-        tooltip += "scanner.tooltip.0".toTranslate()
+
+        tooltip += "scanner.tooltip.0".toTranslate() // Change scanner mode: SHIFT + Right Click
         val modName = when (mode) {
             TYPE_ORES -> "scanner.tooltip.2".toTranslate() // Virtual Ores
             TYPE_FLUIDS -> "scanner.tooltip.4".toTranslate() // Virtual Fluids else
@@ -138,6 +166,9 @@ class ScannerTool : Item() {
         }
         // To scan the area use Right Click
         tooltip += "scanner.tooltip.5".toTranslate()
+        tooltip += ""
+        tooltip += "scanner.tooltip.7".toTranslate(radiusByStack(stack))
+        tooltip += ""
 
         if (Config.enableDebug)
             tooltip += listOf(
@@ -188,15 +219,42 @@ class ScannerTool : Item() {
                         return super.onItemRightClick(stack, world, player)
                     }
 
-                    val radius = 20 // TODO
+                    val radius = radiusByStack(stack)
 
-                    when (type) {
-                        TYPE_ORES -> scanOres(world, layer, player as EntityPlayerMP, radius)
-                        TYPE_FLUIDS -> scanFluids(world, player as EntityPlayerMP, radius)
+                    if (IC2ElectricManager.getCharge(stack) >= 0) {
+//                        IC2ElectricManager.discharge(stack, 1000.0, 2, true, false, false)
+                        when (type) {
+                            TYPE_ORES -> scanOres(world, layer, player as EntityPlayerMP, radius)
+                            TYPE_FLUIDS -> scanFluids(world, player as EntityPlayerMP, radius)
+                        }
                     }
                 }
             }
         }
         return super.onItemRightClick(stack, world, player)
+    }
+
+    override fun canProvideEnergy(stack: ItemStack): Boolean {
+        return true
+    }
+
+    override fun getChargedItem(stack: ItemStack): Item {
+        return this
+    }
+
+    override fun getEmptyItem(stack: ItemStack): Item {
+        return this
+    }
+
+    override fun getMaxCharge(stack: ItemStack): Double {
+        return 500_000.0 + 250_000.0 * (getTier(stack) - 4)
+    }
+
+    override fun getTier(stack: ItemStack): Int {
+        return max(stack.itemDamage + 4, 4)
+    }
+
+    override fun getTransferLimit(stack: ItemStack): Double {
+        return 1000.0
     }
 }

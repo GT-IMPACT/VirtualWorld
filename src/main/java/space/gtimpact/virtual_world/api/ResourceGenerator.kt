@@ -3,6 +3,8 @@ package space.gtimpact.virtual_world.api
 import net.minecraft.world.ChunkCoordIntPair
 import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
+import space.gtimpact.virtual_world.api.VirtualAPI.resizeFluidVeins
+import space.gtimpact.virtual_world.api.VirtualAPI.resizeOreVeins
 import space.gtimpact.virtual_world.api.fluids.ChunkFluid
 import space.gtimpact.virtual_world.api.fluids.VeinFluid
 import space.gtimpact.virtual_world.api.ores.ChunkOre
@@ -37,23 +39,61 @@ object ResourceGenerator {
 
     // === ORES === //
 
+    private val oresChanceSort by lazy {
+        resizeOreVeins.mapValues { (dim, layers) ->
+            layers.mapValues { (layer, veins) ->
+                veins.flatMap { vein ->
+                    List(vein.weight.toInt()) { vein }
+                }
+            }
+        }
+    }
+
     private fun RegionRes.generateOreLayers(world: World) {
+
+        val dimVeins = oresChanceSort[dim].orEmpty()
+
         for (layer in 0 until VirtualAPI.LAYERS_VIRTUAL_ORES) {
+
+            val layerVeins = dimVeins[layer].orEmpty()
+
             val rawVeins = ArrayList<VeinOre>()
+            val regionSeed = world.seed xor (xRegion.toLong() shl 32) xor zRegion.toLong()
+            val rand = Random(regionSeed)
+
             for (xx in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
                 for (zz in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
-                    VirtualAPI.getRandomVirtualOre(layer, dim)?.also { ore ->
+
+                    if (rand.nextDouble() < 0.85) {
+
+                        val oreVein = layerVeins[rand.nextInt(layerVeins.size)]
+
                         VeinOre(
                             xVein = (xRegion shl SHIFT_VEIN_FROM_REGION) + xx,
                             zVein = (zRegion shl SHIFT_VEIN_FROM_REGION) + zz,
-                            oreId = ore.id,
+                            oreId = oreVein.id,
                         ).also { vein ->
-                            vein.generate(ore)
+
+                            for (x in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
+                                for (z in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
+
+                                    ChunkOre(
+                                        x = (vein.xVein shl SHIFT_CHUNK_FROM_VEIN) + x,
+                                        z = (vein.zVein shl SHIFT_CHUNK_FROM_VEIN) + z,
+                                    ).apply {
+                                        if (!oreVein.isHidden && oreVein.rangeSize.last > 0)
+                                            size = rand.nextInt(oreVein.rangeSize.first * 1000, oreVein.rangeSize.last * 1000)
+                                        vein.oreChunks += this
+                                    }
+                                }
+                            }
+
                             rawVeins += vein
                         }
                     }
                 }
             }
+
             this.oreVeins[layer] = rawVeins
         }
 
@@ -64,7 +104,6 @@ object ResourceGenerator {
                     if (ch is IModifiableChunk) {
                         when (layer) {
                             0 -> ch.saveOreLayer0(vein.oreId, chunk.size)
-
                             1 -> ch.saveOreLayer1(vein.oreId, chunk.size)
                         }
                     }
@@ -73,33 +112,52 @@ object ResourceGenerator {
         }
     }
 
-    private fun VeinOre.generate(ore: VirtualOreVein) {
-        for (x in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
-            for (z in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
-                ChunkOre(
-                    x = (xVein shl SHIFT_CHUNK_FROM_VEIN) + x,
-                    z = (zVein shl SHIFT_CHUNK_FROM_VEIN) + z,
-                ).apply {
-                    if (!ore.isHidden && ore.rangeSize.last > 0)
-                        size = Random.nextInt(ore.rangeSize.first * 1000, ore.rangeSize.last * 1000)
-                    oreChunks += this
-                }
+    // === FLUIDS === //
+
+    private val fluidsChanceSort by lazy {
+        resizeFluidVeins.mapValues { (dim, veins) ->
+            veins.flatMap { vein ->
+                List(vein.weight.toInt()) { vein }
             }
         }
     }
 
-    // === FLUIDS === //
-
     private fun RegionRes.generateFluidLayers(world: World) {
+
+        val regionSeed = world.seed xor (xRegion.toLong() shl 32) xor zRegion.toLong()
+        val rand = Random(regionSeed)
+
+        val dimVeins = fluidsChanceSort[dim].orEmpty()
+
         for (xx in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
             for (zz in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
-                VirtualAPI.getRandomVirtualFluid(dim)?.also { ore ->
+
+                if (rand.nextDouble() < 0.85) {
+
+                    val fluidVein = dimVeins[rand.nextInt(dimVeins.size)]
+
                     this.fluidVeins += VeinFluid(
                         xVein = (xRegion shl SHIFT_VEIN_FROM_REGION) + xx,
                         zVein = (zRegion shl SHIFT_VEIN_FROM_REGION) + zz,
-                        fluidId = ore.id,
+                        fluidId = fluidVein.id,
                     ).also { vein ->
-                        vein.generate(ore)
+
+                        val sizeVein = if (!fluidVein.isHidden && fluidVein.rangeSize.last > 0)
+                            rand.nextInt(fluidVein.rangeSize.first * 1000, fluidVein.rangeSize.last * 1000)
+                        else 0
+
+                        for (x in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
+                            for (z in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
+                                ChunkFluid(
+                                    x = (vein.xVein shl SHIFT_CHUNK_FROM_VEIN) + x,
+                                    z = (vein.zVein shl SHIFT_CHUNK_FROM_VEIN) + z,
+                                    type = TypeFluidVein.entries.random(rand),
+                                ).apply {
+                                    size = sizeVein
+                                    vein.oreChunks += this
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -110,26 +168,6 @@ object ResourceGenerator {
                 val ch = world.getChunkFromChunkCoords(chunk.x, chunk.z)
                 if (ch is IModifiableChunk) {
                     ch.saveFluidLayer(vein.fluidId, chunk.size, chunk.type)
-                }
-            }
-        }
-    }
-
-    private fun VeinFluid.generate(vein: VirtualFluidVein) {
-
-        val sizeVein = if (!vein.isHidden && vein.rangeSize.last > 0)
-            Random.nextInt(vein.rangeSize.first * 1000, vein.rangeSize.last * 1000)
-        else 0
-
-        for (x in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
-            for (z in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
-                ChunkFluid(
-                    x = (xVein shl SHIFT_CHUNK_FROM_VEIN) + x,
-                    z = (zVein shl SHIFT_CHUNK_FROM_VEIN) + z,
-                    type = TypeFluidVein.values().random(),
-                ).apply {
-                    size = sizeVein
-                    oreChunks += this
                 }
             }
         }

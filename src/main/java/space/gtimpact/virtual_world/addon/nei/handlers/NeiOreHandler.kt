@@ -26,7 +26,7 @@ import kotlin.math.max
 
 class NeiOreHandler : TemplateRecipeHandler() {
 
-    private val registerOres = VirtualAPI.VIRTUAL_ORES
+    private val registerOres = VirtualAPI.virtualOres
         .filter { !it.isHidden }
         .sortedBy { it.layer }
 
@@ -46,7 +46,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
             .setDisplayStack(ItemStack(Blocks.diamond_ore))
             .setMaxRecipesPerPage(2)
             .setHeight(165)
-            .setWidth(200)
+            .setWidth(174)
             .setShiftY(6)
             .build()
 
@@ -188,7 +188,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
             val fs = virtualWorldNeiFluidHandler.getDrillFluid()
             val fluid = fs?.let { FluidStack(it, 50) }
 
-            for ((i, component) in ore.ores.withIndex()) {
+            for ((i, component) in ore.ores.withIndex().take(1)) {
                 if (i % 8 == 0) x++
                 mOutputs.add(
                     FixedPositionedStack(

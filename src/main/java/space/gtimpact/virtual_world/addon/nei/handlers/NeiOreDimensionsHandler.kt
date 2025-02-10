@@ -24,13 +24,13 @@ class NeiOreDimensionsHandler : TemplateRecipeHandler() {
 
     private val registerOres = run {
         val map = hashMapOf<String, List<VirtualOreVein>>()
-        VirtualAPI.VIRTUAL_ORES
+        VirtualAPI.virtualOres
             .filter { !it.isHidden }
             .flatMap { it.dimensions }
             .distinct()
             .forEach {
                 val list = arrayListOf<VirtualOreVein>()
-                VirtualAPI.VIRTUAL_ORES.forEach { vein ->
+                VirtualAPI.virtualOres.forEach { vein ->
                     if (vein.dimensions.contains(it)) {
                         list += vein
                     }
@@ -57,7 +57,7 @@ class NeiOreDimensionsHandler : TemplateRecipeHandler() {
             .setDisplayStack(ItemStack(Blocks.diamond_ore))
             .setMaxRecipesPerPage(2)
             .setHeight(165)
-            .setWidth(200)
+            .setWidth(174)
             .setShiftY(6)
             .build()
 
