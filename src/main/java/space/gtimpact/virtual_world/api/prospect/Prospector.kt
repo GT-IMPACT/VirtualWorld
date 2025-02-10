@@ -16,7 +16,13 @@ import space.gtimpact.virtual_world.network.FindVeinsPacket
 
 
 @JvmOverloads
-fun scanOres(w: World, layer: Int, player: EntityPlayer, radius: Int, needShowGui: Boolean = true) {
+fun scanOres(
+    w: World, layer: Int,
+    player: EntityPlayer,
+    radius: Int,
+    needShowGui: Boolean = true,
+    needScanSize: Boolean = true,
+) {
 
     val chX = player.posX.toInt() shr 4
     val chZ = player.posZ.toInt() shr 4
@@ -42,7 +48,7 @@ fun scanOres(w: World, layer: Int, player: EntityPlayer, radius: Int, needShowGu
 //    if (needShowGui)
 //        VirtualOresNetwork.sendToPlayer(packet, player)
 
-    ProspectorVeinManager.createArea(chunksRes, w.getChunkFromChunkCoords(chX, chZ), player, layer)
+    ProspectorVeinManager.createArea(chunksRes, w.getChunkFromChunkCoords(chX, chZ), player, layer, needScanSize)
 }
 
 
@@ -65,7 +71,13 @@ private fun scanOreChunk(chunk: Chunk, layer: Int): VirtualOreVeinPosition? {
 }
 
 @JvmOverloads
-fun scanFluids(w: World, player: EntityPlayer, radius: Int, needShowGui: Boolean = true) {
+fun scanFluids(
+    w: World,
+    player: EntityPlayer,
+    radius: Int,
+    needShowGui: Boolean = true,
+    needScanSize: Boolean = true,
+) {
 
     val chX = player.posX.toInt() shr 4
     val chZ = player.posZ.toInt() shr 4
@@ -90,7 +102,7 @@ fun scanFluids(w: World, player: EntityPlayer, radius: Int, needShowGui: Boolean
 //    if (needShowGui)
 //        VirtualOresNetwork.sendToPlayer(packet, player)
 
-    ProspectorVeinManager.createArea(list, w.getChunkFromChunkCoords(chX, chZ), player)
+    ProspectorVeinManager.createArea(list, w.getChunkFromChunkCoords(chX, chZ), player, needScanSize)
 }
 
 private fun scanFluidChunk(chunk: Chunk, packet: FindVeinsPacket): VirtualFluidVeinPosition? {

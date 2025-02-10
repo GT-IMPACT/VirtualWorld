@@ -117,7 +117,11 @@ class VirtualOresDrawStep(private val location: VirtualOresLocation) : DrawStep 
 
         val vein = location.pos.vein ?: return
 
-        if (!vein.isHidden && vein.rangeSize.last > 0 && location.pos.chunks.sumOf { it.size } > 0) {
+        val hasShow = location.pos.chunks
+            .takeIf { !it.all { it.size == -1 } }
+            ?.sumOf { it.size }?.let { it > 0 } ?: true
+
+        if (!vein.isHidden && vein.rangeSize.last > 0 && hasShow) {
 
             val blockSize = 2.0.pow(gridRenderer.zoom)
 
@@ -181,7 +185,7 @@ class VirtualOresDrawStep(private val location: VirtualOresLocation) : DrawStep 
             }
 
             DrawUtil.drawLabel(
-                "${vein.name}, ${vein.rangeSize.first}k - ${vein.rangeSize.last}k",
+                "${vein.name}, \n${vein.rangeSize.first}k - ${vein.rangeSize.last}k",
                 pixel.getX() + 2 * blockSize,
                 pixel.getY() + 2 * blockSize,
                 DrawUtil.HAlign.Right,

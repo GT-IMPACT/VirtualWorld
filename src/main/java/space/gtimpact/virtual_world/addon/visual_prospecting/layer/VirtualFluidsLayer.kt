@@ -115,8 +115,9 @@ class VirtualFluidsDrawStep(private val location: VirtualFluidsLocation) : DrawS
 
         val vein = location.pos.vein ?: return
         val size = location.pos.chunks.sumOf { it.size } / 16
+        val hasShow = location.pos.chunks.all { it.size == -1 }
 
-        if (!vein.isHidden && vein.rangeSize.last > 0 && size > 0) {
+        if (!vein.isHidden && vein.rangeSize.last > 0 && (size > 0 || hasShow)) {
 
             val blockSize = 2.0.pow(gridRenderer.zoom)
 
@@ -145,23 +146,26 @@ class VirtualFluidsDrawStep(private val location: VirtualFluidsLocation) : DrawS
             //left
             DrawUtil.drawRectangle(pixel.getX() + halfBlock, pixel.getY() + halfBlock, halfBlock, chunk, borderColor, borderAlpha)
 
-            //full
-            DrawUtil.drawRectangle(pixel.getX() + halfBlock * 2, pixel.getY() + halfBlock * 2, fullWidth, fullWidth, borderColor, 225 * size / 100)
+            if (size > 0) {
 
-            if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) DrawUtil.drawLabel(
-                "${size}%",
-                pixel.getX() + 2 * 4 * blockSize,
-                pixel.getY() + 10 * 4 * blockSize,
-                DrawUtil.HAlign.Right,
-                DrawUtil.VAlign.Below,
-                0,
-                180,
-                0x00FFFFFF,
-                255,
-                fontScale,
-                false,
-                rotation
-            )
+                //full
+                DrawUtil.drawRectangle(pixel.getX() + halfBlock * 2, pixel.getY() + halfBlock * 2, fullWidth, fullWidth, borderColor, 225 * size / 100)
+
+                if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) DrawUtil.drawLabel(
+                    "${size}%",
+                    pixel.getX() + 2 * 4 * blockSize,
+                    pixel.getY() + 10 * 4 * blockSize,
+                    DrawUtil.HAlign.Right,
+                    DrawUtil.VAlign.Below,
+                    0,
+                    180,
+                    0x00FFFFFF,
+                    255,
+                    fontScale,
+                    false,
+                    rotation
+                )
+            }
 
             DrawUtil.drawLabel(
                 "${vein.name}, ${vein.rangeSize.first}k - ${vein.rangeSize.last}k",

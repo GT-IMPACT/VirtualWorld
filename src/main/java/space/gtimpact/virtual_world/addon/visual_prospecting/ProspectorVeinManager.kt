@@ -13,7 +13,13 @@ import space.gtimpact.virtual_world.network.sendPacket
 
 object ProspectorVeinManager {
 
-    fun createArea(chunks: ArrayList<VirtualOreVeinPosition>, current: Chunk, player: EntityPlayer, layer: Int) {
+    fun createArea(
+        chunks: ArrayList<VirtualOreVeinPosition>,
+        current: Chunk,
+        player: EntityPlayer,
+        layer: Int,
+        needScanSize: Boolean,
+    ) {
 
         val chunkGroup = chunks.groupBy {
             (it.x shr ResourceGenerator.SHIFT_CHUNK_FROM_VEIN) to (it.z shr ResourceGenerator.SHIFT_CHUNK_FROM_VEIN)
@@ -28,7 +34,7 @@ object ProspectorVeinManager {
                     CacheOreVeinChunk(
                         x = it.x,
                         z = it.z,
-                        size = it.size,
+                        size = if (needScanSize) it.size else -1,
                     )
                 }
             )
@@ -47,7 +53,12 @@ object ProspectorVeinManager {
             player.sendPacket(prospectorPacketOre.transaction(buf))
     }
 
-    fun createArea(chunks: ArrayList<VirtualFluidVeinPosition>, current: Chunk, player: EntityPlayer) {
+    fun createArea(
+        chunks: ArrayList<VirtualFluidVeinPosition>,
+        current: Chunk,
+        player: EntityPlayer,
+        needScanSize: Boolean,
+    ) {
 
         val chunkGroup = chunks.groupBy {
             (it.x shr ResourceGenerator.SHIFT_CHUNK_FROM_VEIN) to (it.z shr ResourceGenerator.SHIFT_CHUNK_FROM_VEIN)
@@ -62,7 +73,7 @@ object ProspectorVeinManager {
                     CacheFluidVeinChunk(
                         x = it.x,
                         z = it.z,
-                        size = it.size,
+                        size = if (needScanSize) it.size else -1,
                     )
                 }
             )
