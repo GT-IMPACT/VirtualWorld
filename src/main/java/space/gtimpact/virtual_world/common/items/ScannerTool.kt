@@ -134,10 +134,9 @@ class ScannerTool : Item(), IElectricItem {
 
     fun radiusByStack(stack: ItemStack): Int {
         return when (stack.itemDamage) {
-            0 -> 8
             1 -> 12
             2 -> 16
-            3 -> 40
+            3 -> 20
             else -> 8
         }
     }
