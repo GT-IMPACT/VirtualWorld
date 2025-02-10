@@ -185,7 +185,7 @@ class VirtualOresDrawStep(private val location: VirtualOresLocation) : DrawStep 
             }
 
             DrawUtil.drawLabel(
-                "${vein.name}, \n${vein.rangeSize.first}k - ${vein.rangeSize.last}k",
+                "${vein.name}, ${vein.rangeSize.first}k - ${vein.rangeSize.last}k",
                 pixel.getX() + 2 * blockSize,
                 pixel.getY() + 2 * blockSize,
                 DrawUtil.HAlign.Right,
