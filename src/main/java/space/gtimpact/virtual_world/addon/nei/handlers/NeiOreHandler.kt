@@ -81,7 +81,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
         drawText(4, 0, "Show All", Color(84, 81, 81).hashCode())
         drawText(4, 12, "$vName Vein", clr)
 
-        if (virtualWorldNeiFluidHandler.isModified) drawText(4, 48, "Need Special Fluid:", clr)
+        if (virtualWorldNeiFluidHandler.isModified) drawText(4, 48, "Need Special Fluid (per cycle):", clr)
         val sizeVein = NumberFormat.getNumberInstance().format(ore.rangeSize.first) + " - " + NumberFormat.getNumberInstance().format(ore.rangeSize.last)
         drawText(4, 84, "Size: " + sizeVein + "k cycles", clr)
         drawText(4, 96, "Layer: ${ore.layer}", clr)
@@ -117,21 +117,21 @@ class NeiOreHandler : TemplateRecipeHandler() {
     }
 
     override fun handleItemTooltip(gui: GuiRecipe<*>?, aStack: ItemStack?, currenttip: MutableList<String?>, aRecipeIndex: Int): List<String?> {
-        val tObject = arecipes[aRecipeIndex]
-        if (tObject is VirtualOreVeinCachedRecipe) {
-            for (tStack in tObject.mOutputs) {
-                if (aStack == tStack.item) {
-                    if ((tStack !is FixedPositionedStack) || (tStack.chance <= 0) || (tStack.chance == 10000)) break
-                    currenttip.add((tStack.chance / 100).toString() + "." + (if (tStack.chance % 100 < 10) ("0" + tStack.chance % 100) else Integer.valueOf(tStack.chance % 100)) + "%")
-                    break
-                }
-            }
-            for (tStack in tObject.mInputs) {
-                if (aStack?.item == tStack.item?.item)
-                    currenttip.add("Per 1 cycle")
+        if (aStack == null)
+            return currenttip
+
+        val tObject = arecipes[aRecipeIndex] as? VirtualOreVeinCachedRecipe
+            ?: return currenttip
+
+        for (tStack in tObject.mOutputs) {
+            if (aStack == tStack.item) {
+                if ((tStack !is FixedPositionedStack) || (tStack.chance <= 0) || (tStack.chance == 10000)) break
+                currenttip.add((tStack.chance / 100).toString() + "." + (if (tStack.chance % 100 < 10) ("0" + tStack.chance % 100) else Integer.valueOf(tStack.chance % 100)) + "%")
+                break
             }
         }
-        return currenttip.distinct()
+
+        return currenttip
     }
 
     override fun loadCraftingRecipes(outputId: String, vararg results: Any?) {
@@ -188,7 +188,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
             val fs = virtualWorldNeiFluidHandler.getDrillFluid()
             val fluid = fs?.let { FluidStack(it, 50) }
 
-            for ((i, component) in ore.ores.withIndex().take(1)) {
+            for ((i, component) in ore.ores.withIndex()) {
                 if (i % 8 == 0) x++
                 mOutputs.add(
                     FixedPositionedStack(

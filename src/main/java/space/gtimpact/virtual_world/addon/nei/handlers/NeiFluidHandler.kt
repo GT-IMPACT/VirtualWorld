@@ -125,21 +125,21 @@ class NeiFluidHandler : TemplateRecipeHandler() {
     }
 
     override fun handleItemTooltip(gui: GuiRecipe<*>?, aStack: ItemStack?, currenttip: MutableList<String?>, aRecipeIndex: Int): List<String?> {
-        val tObject = arecipes[aRecipeIndex]
-        if (tObject is VirtualFluidVeinCachedRecipe) {
-            for (tStack in tObject.mOutputs) {
-                if (aStack == tStack.item) {
-                    if ((tStack !is FixedPositionedStack) || (tStack.chance <= 0) || (tStack.chance == 10000)) break
-                    currenttip.add((tStack.chance / 100).toString() + "." + (if (tStack.chance % 100 < 10) ("0" + tStack.chance % 100) else Integer.valueOf(tStack.chance % 100)) + "%")
-                    break
-                }
-            }
-            for (tStack in tObject.mInputs) {
-                if (aStack?.item == tStack.item?.item)
-                    currenttip.add("Per 1 cycle")
+        if (aStack == null)
+            return currenttip
+
+        val tObject = arecipes[aRecipeIndex] as? VirtualFluidVeinCachedRecipe
+            ?: return currenttip
+
+        for (tStack in tObject.mOutputs) {
+            if (aStack == tStack.item) {
+                if ((tStack !is FixedPositionedStack) || (tStack.chance <= 0) || (tStack.chance == 10000)) break
+                currenttip.add((tStack.chance / 100).toString() + "." + (if (tStack.chance % 100 < 10) ("0" + tStack.chance % 100) else Integer.valueOf(tStack.chance % 100)) + "%")
+                break
             }
         }
-        return currenttip.distinct()
+
+        return currenttip
     }
 
     override fun loadCraftingRecipes(outputId: String, vararg results: Any?) {

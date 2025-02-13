@@ -35,10 +35,9 @@ repositories {
 
 dependencies {
     api("com.github.GTNewHorizons:CodeChickenCore:1.1.13:dev")
-    api("com.github.GTNewHorizons:NotEnoughItems:2.4.13-GTNH:dev")
+    api("com.github.GTNewHorizons:NotEnoughItems:2.6.0-GTNH:dev")
     api("space.impact:Packet-Network:1.1.8:dev")
     api("space.impact:VisualProspecting:1.3.2:dev")
 
-    implementation("com.github.GTNewHorizons:CodeChickenLib:1.1.10:dev")
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.6.0")
 }
