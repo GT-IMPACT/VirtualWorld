@@ -1,23 +1,5 @@
-item.virtual_ore_scanner.0.name=Сканер подземных ресурсов (EV)
-item.virtual_ore_scanner.1.name=Сканер подземных ресурсов (IV)
-item.virtual_ore_scanner.2.name=Сканер подземных ресурсов (LuV)
-item.virtual_ore_scanner.3.name=Сканер подземных ресурсов (ZPM)
-
 virtual_world.prospected.ores=Вы нашли %s новых рудных месторождений и %s обновлены!
 virtual_world.prospected.fluids=Вы нашли %s новых жидкостных месторождений и %s обновлены!
-
-scanner.change_layer=Выбран рудный слой #
-scanner.change_mode.0=Выбран режим: §aПодземные Руды
-scanner.change_mode.1=Выбран режим: §aПодземные Жидкости
-
-scanner.tooltip.0=Изменить режим сканнера: Shift + Right Click
-scanner.tooltip.1=Текущий режим сканнера:
-scanner.tooltip.2=§aПодземные руды
-scanner.tooltip.3=Изменить рудный слой: Ctrl + Mouse Scroll
-scanner.tooltip.4=§aПодземные жидкости
-scanner.tooltip.5=Сканировать территорию: Right Click
-scanner.tooltip.6=Текущий рудный слой: §a#
-scanner.tooltip.7=Радиус работы: §e%s§7  чанков
 
 visualprospecting.button.virtualores.l0=Виртуальные Руды Слой 0
 visualprospecting.button.virtualores.l1=Виртуальные Руды Слой 1

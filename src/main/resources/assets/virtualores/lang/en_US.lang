@@ -1,23 +1,5 @@
-item.virtual_ore_scanner.0.name=Underground Resource Scanner (EV)
-item.virtual_ore_scanner.1.name=Underground Resource Scanner (IV)
-item.virtual_ore_scanner.2.name=Underground Resource Scanner (LuV)
-item.virtual_ore_scanner.3.name=Underground Resource Scanner (ZPM)
-
 virtual_world.prospected.ores=You found %s new ore veins and %s updated!
 virtual_world.prospected.fluids=You found %s new fluid veins and %s updated!
-
-scanner.change_layer=Set ore layer #
-scanner.change_mode.0=Set mod: §aUnderground Ores
-scanner.change_mode.1=Set mod: §aUnderground Fluids
-
-scanner.tooltip.0=Change scanner mode: Shift + Right Click
-scanner.tooltip.1=Current scanner mode:
-scanner.tooltip.2=§aUnderground Ores
-scanner.tooltip.3=Change ore layer scanner: Ctrl + Mouse Scroll
-scanner.tooltip.4=§aUnderground Fluids
-scanner.tooltip.5=To scan the area use Right Click
-scanner.tooltip.6=Current ore layer: §a#
-scanner.tooltip.7=Work radius: §e%s§7 chunks
 
 visualprospecting.button.virtualores.l0=Virtual Ores Layer 0
 visualprospecting.button.virtualores.l1=Virtual Ores Layer 1

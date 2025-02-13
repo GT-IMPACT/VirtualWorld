@@ -21,6 +21,8 @@ object Config {
 
     var enableDebug = false
 
+    var scannerDischargeAmount = 100_000
+
     private inline fun onPostCreate(configFile: File?, crossinline action: (Configuration) -> Unit) {
         Configuration(configFile).let { config ->
             config.load()
@@ -101,6 +103,15 @@ object Config {
                 GENERAL,
                 enableDebug,
                 "Enabled Debug Mode"
+            )
+
+            scannerDischargeAmount = cfg.getInt(
+                "scannerDischargeAmount",
+                GENERAL,
+                scannerDischargeAmount,
+                0,
+                1_000_000,
+                "Discharge amount scanner per operation"
             )
         }
     }

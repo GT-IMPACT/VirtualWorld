@@ -9,7 +9,6 @@ fun registerPackets() {
     registerPacket(prospectorPacketFluid)
     registerPacket(prospectorPacketOre)
     registerPacket(notifyClientSavePacket)
-    registerPacket(MetaBlockGlassPacket)
     registerPacket(SetObjectToChunkPacket)
 }
 

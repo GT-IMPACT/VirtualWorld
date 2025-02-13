@@ -10,7 +10,6 @@ import space.gtimpact.virtual_world.addon.visual_prospecting.cache.PutDataStatus
 import space.gtimpact.virtual_world.addon.visual_prospecting.readPacketDataFluidVein
 import space.gtimpact.virtual_world.addon.visual_prospecting.readPacketDataOreVein
 import space.gtimpact.virtual_world.api.VirtualAPI
-import space.gtimpact.virtual_world.common.items.ScannerTool
 import space.gtimpact.virtual_world.util.ItemStackByteUtil
 import space.impact.packet_network.network.packets.createPacketStream
 
@@ -30,7 +29,6 @@ val prospectorPacketFluid = createPacketStream(2000) { isServer, read ->
                 })
             }
         }
-
 
         if (status.isNotEmpty()) {
             ChatComponentTranslation("virtual_world.prospected.fluids", status.count { it == PutDataStatus.NEW }, status.count { it == PutDataStatus.UPDATE })
@@ -86,14 +84,6 @@ val notifyClientSavePacket = createPacketStream(2002) { isServer, data ->
             ClientVirtualWorldCache.saveCache(serverName)
         else
             ClientVirtualWorldCache.loadVeinCache(serverName)
-    }
-}
-
-val MetaBlockGlassPacket = createPacketStream(2003) { isServer, data ->
-    if (isServer) {
-        serverPlayer?.heldItem?.also { stack ->
-            (stack.item as ScannerTool).changeLayer(serverPlayer!!, stack)
-        }
     }
 }
 

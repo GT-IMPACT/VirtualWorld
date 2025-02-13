@@ -1,6 +1,9 @@
+@file:Suppress("unused")
+
 package space.gtimpact.virtual_world.api
 
 import com.google.common.io.ByteStreams
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.item.ItemStack
 import net.minecraft.world.ChunkCoordIntPair
@@ -8,6 +11,8 @@ import net.minecraft.world.World
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.common.DimensionManager
 import space.gtimpact.virtual_world.api.ResourceGenerator.getVeinChunks
+import space.gtimpact.virtual_world.api.prospect.tryScanFluids
+import space.gtimpact.virtual_world.api.prospect.tryScanOres
 import space.gtimpact.virtual_world.config.Config
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_FLUIDS
 import space.gtimpact.virtual_world.config.Config.IS_DISABLED_VIRTUAL_ORES
@@ -19,7 +24,6 @@ import kotlin.math.round
 /**
  * Virtual Ore API
  */
-@Suppress("unused")
 object VirtualAPI {
 
     /**
@@ -98,6 +102,23 @@ object VirtualAPI {
         return virtualOres.find { it.id == oreId }
     }
 
+    @JvmStatic
+    fun scanOres(
+        world: World,
+        layer: Int,
+        player: EntityPlayer,
+        radius: Int,
+        needScanSize: Boolean,
+    ) {
+        tryScanOres(
+            w = world,
+            layer = layer,
+            player = player,
+            radius = radius,
+            needScanSize = needScanSize,
+        )
+    }
+
     /**
      * Get registered Virtual Ores
      */
@@ -111,7 +132,7 @@ object VirtualAPI {
      */
     @JvmStatic
     fun getOreInfoChunk(ch: Chunk, layer: Int): OreVeinCount? {
-        return when(layer) {
+        return when (layer) {
             0 -> ch.getOreLayer0()
             1 -> ch.getOreLayer1()
             else -> null
@@ -201,6 +222,21 @@ object VirtualAPI {
     @JvmStatic
     fun extractFluidFromVein(ch: Chunk, amount: Int): FluidVeinCount? {
         return ch.extractFluidFromVein(amount)
+    }
+
+    @JvmStatic
+    fun scanFluids(
+        world: World,
+        player: EntityPlayer,
+        radius: Int,
+        needScanSize: Boolean,
+    ) {
+        tryScanFluids(
+            w = world,
+            player = player,
+            radius = radius,
+            needScanSize = needScanSize,
+        )
     }
 
     /**

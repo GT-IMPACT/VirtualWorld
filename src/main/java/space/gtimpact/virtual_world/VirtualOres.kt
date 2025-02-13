@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package space.gtimpact.virtual_world
 
 import cpw.mods.fml.common.Mod
@@ -13,10 +15,8 @@ import space.gtimpact.virtual_world.api.VirtualFluidVein
 import space.gtimpact.virtual_world.api.VirtualOreComponent
 import space.gtimpact.virtual_world.api.VirtualOreVein
 import space.gtimpact.virtual_world.config.Config
-import space.gtimpact.virtual_world.network.VirtualOresNetwork
 import space.gtimpact.virtual_world.network.registerPackets
 import space.gtimpact.virtual_world.proxy.CommonProxy
-import space.gtimpact.virtual_world.proxy.GuiHandler
 import java.awt.Color
 import java.util.*
 import kotlin.random.Random
@@ -44,8 +44,6 @@ object VirtualOres {
 
     @Mod.EventHandler
     fun preInit(event: FMLPreInitializationEvent) {
-        VirtualOresNetwork
-        GuiHandler()
         proxy.preInit(event)
     }
 
