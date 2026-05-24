@@ -53,9 +53,13 @@ object ResourceGenerator {
 
         val dimVeins = oresChanceSort[dim].orEmpty()
 
-        for (layer in 0 until VirtualAPI.LAYERS_VIRTUAL_ORES) {
+        layer@for (layer in 0 until VirtualAPI.LAYERS_VIRTUAL_ORES) {
 
             val layerVeins = dimVeins[layer].orEmpty()
+
+            if (layerVeins.isEmpty()) {
+                continue@layer
+            }
 
             val rawVeins = ArrayList<VeinOre>()
             val regionSeed = world.seed xor (xRegion.toLong() shl 32) xor zRegion.toLong()
@@ -129,32 +133,35 @@ object ResourceGenerator {
 
         val dimVeins = fluidsChanceSort[dim].orEmpty()
 
-        for (xx in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
-            for (zz in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
+        if (dimVeins.isNotEmpty()) {
 
-                if (rand.nextDouble() < 0.85) {
+            for (xx in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
+                for (zz in 0 until VEIN_COUNT_IN_REGIN_COORDINATE) {
 
-                    val fluidVein = dimVeins[rand.nextInt(dimVeins.size)]
+                    if (rand.nextDouble() < 0.85) {
 
-                    this.fluidVeins += VeinFluid(
-                        xVein = (xRegion shl SHIFT_VEIN_FROM_REGION) + xx,
-                        zVein = (zRegion shl SHIFT_VEIN_FROM_REGION) + zz,
-                        fluidId = fluidVein.id,
-                    ).also { vein ->
+                        val fluidVein = dimVeins[rand.nextInt(dimVeins.size)]
 
-                        val sizeVein = if (!fluidVein.isHidden && fluidVein.rangeSize.last > 0)
-                            rand.nextInt(fluidVein.rangeSize.first * 1000, fluidVein.rangeSize.last * 1000)
-                        else 0
+                        this.fluidVeins += VeinFluid(
+                            xVein = (xRegion shl SHIFT_VEIN_FROM_REGION) + xx,
+                            zVein = (zRegion shl SHIFT_VEIN_FROM_REGION) + zz,
+                            fluidId = fluidVein.id,
+                        ).also { vein ->
 
-                        for (x in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
-                            for (z in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
-                                ChunkFluid(
-                                    x = (vein.xVein shl SHIFT_CHUNK_FROM_VEIN) + x,
-                                    z = (vein.zVein shl SHIFT_CHUNK_FROM_VEIN) + z,
-                                    type = TypeFluidVein.entries.random(rand),
-                                ).apply {
-                                    size = sizeVein
-                                    vein.oreChunks += this
+                            val sizeVein = if (!fluidVein.isHidden && fluidVein.rangeSize.last > 0)
+                                rand.nextInt(fluidVein.rangeSize.first * 1000, fluidVein.rangeSize.last * 1000)
+                            else 0
+
+                            for (x in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
+                                for (z in 0 until CHUNK_COUNT_IN_VEIN_COORDINATE) {
+                                    ChunkFluid(
+                                        x = (vein.xVein shl SHIFT_CHUNK_FROM_VEIN) + x,
+                                        z = (vein.zVein shl SHIFT_CHUNK_FROM_VEIN) + z,
+                                        type = TypeFluidVein.entries.random(rand),
+                                    ).apply {
+                                        size = sizeVein
+                                        vein.oreChunks += this
+                                    }
                                 }
                             }
                         }
