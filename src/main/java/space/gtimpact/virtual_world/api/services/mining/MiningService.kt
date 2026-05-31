@@ -10,6 +10,7 @@ import space.gtimpact.virtual_world.api.services.mining.fluids.FluidExtractionRe
 import space.gtimpact.virtual_world.api.services.mining.fluids.FluidVeinKey
 import space.gtimpact.virtual_world.api.services.mining.ores.OreChunkKey
 import space.gtimpact.virtual_world.api.services.mining.ores.OreMiningResult
+import space.gtimpact.virtual_world.api.services.mining.ores.OreMiningVeinResult
 import space.gtimpact.virtual_world.api.services.scanning.fluids.FluidVeinResult
 import space.gtimpact.virtual_world.api.services.scanning.ores.OreChunkResult
 import space.gtimpact.virtual_world.api.services.storage.StorageService
@@ -287,6 +288,56 @@ class MiningService(
             requestedVolume = volume,
             extractedVolume = change.changedAmount,
             remainingVolume = change.remainingAmount,
+        )
+    }
+
+    fun mineOreVienAtBlock(
+        dimensionId: Int,
+        blockPos: WorldPos,
+        layerIndex: Int = 0,
+        amount: Int,
+    ): OreMiningVeinResult? {
+        return mineOreVienAtChunk(
+            dimensionId = dimensionId,
+            chunkPos = blockPos.toChunkPos(),
+            layerIndex = layerIndex,
+            amount = amount,
+        )
+    }
+
+    fun mineOreVienAtChunk(
+        dimensionId: Int,
+        chunkPos: ChunkPos,
+        layerIndex: Int = 0,
+        amount: Int,
+    ): OreMiningVeinResult? {
+        val vein = regions.getOreVeinAtVein(
+            dimensionId = dimensionId,
+            pos = chunkPos.toWorldOrigin().toResourcePos(),
+        ) ?: return null
+
+        val layer = vein.layers
+            .firstOrNull { it.layerIndex == layerIndex }
+            ?: return null
+
+        val results = layer.chunks.mapNotNull { chunk ->
+            mineOreAtChunk(
+                dimensionId = dimensionId,
+                chunkPos = chunk.chunkPos,
+                layerIndex = layerIndex,
+                amount = amount,
+            )
+        }
+
+        val requestedAmount = results.sumOf { it.requestedAmount }
+        val minedAmount = results.sumOf { it.minedAmount }
+        val remainingAmount = results.sumOf { it.remainingAmount }
+
+        return OreMiningVeinResult(
+            results = results,
+            requestedAmount = requestedAmount,
+            minedAmount = minedAmount,
+            remainingAmount = remainingAmount,
         )
     }
 }

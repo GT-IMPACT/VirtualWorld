@@ -24,7 +24,7 @@ class ScanningService(
     ): OreScanReport {
         val veinPositions = calculateVeinAreaAroundBlock(
             centerBlockPos = centerBlockPos,
-            radiusVeins = radiusVeins
+            radiusVeins = radiusVeins,
         )
 
         regions.preloadRegionsForVeins(
@@ -110,7 +110,7 @@ class ScanningService(
     ): FluidScanReport {
         val veinPositions = calculateVeinAreaAroundBlock(
             centerBlockPos = centerBlockPos,
-            radiusVeins = radiusVeins
+            radiusVeins = radiusVeins,
         )
 
         regions.preloadRegionsForVeins(

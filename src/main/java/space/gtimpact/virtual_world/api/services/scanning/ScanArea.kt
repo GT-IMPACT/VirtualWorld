@@ -9,19 +9,23 @@ internal fun calculateVeinAreaAroundBlock(
     radiusVeins: Int
 ): List<ResourcePos> {
 
-    if (radiusVeins <= 0) {
+    if (radiusVeins < 0) {
         return emptyList()
     }
 
     val centerVeinPos = centerBlockPos.toResourcePos()
     val result = mutableListOf<ResourcePos>()
 
-    for (offsetX in -radiusVeins..radiusVeins) {
-        for (offsetZ in -radiusVeins..radiusVeins) {
-            result += ResourcePos(
-                x = centerVeinPos.x + offsetX,
-                z = centerVeinPos.z + offsetZ
-            )
+    if (radiusVeins == 0) {
+        result += centerBlockPos.toResourcePos()
+    } else {
+        for (offsetX in -radiusVeins..radiusVeins) {
+            for (offsetZ in -radiusVeins..radiusVeins) {
+                result += ResourcePos(
+                    x = centerVeinPos.x + offsetX,
+                    z = centerVeinPos.z + offsetZ
+                )
+            }
         }
     }
 

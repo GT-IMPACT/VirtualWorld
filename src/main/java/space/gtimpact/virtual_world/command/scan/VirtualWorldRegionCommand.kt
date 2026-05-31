@@ -79,7 +79,7 @@ fun region(world: World, player: EntityPlayer, args: Array<String>) {
                 mode = ScanMode.WITH_AMOUNT,
                 dimensionId = world.provider.dimensionId,
                 layer = 1,
-                radiusVeins = 1,
+                radiusVeins = 0,
             )
         }
 
@@ -98,7 +98,7 @@ fun region(world: World, player: EntityPlayer, args: Array<String>) {
                 player = player,
                 mode = ScanMode.WITH_AMOUNT,
                 dimensionId = world.provider.dimensionId,
-                radiusVeins = 8,
+                radiusVeins = 0,
             )
         }
     }
