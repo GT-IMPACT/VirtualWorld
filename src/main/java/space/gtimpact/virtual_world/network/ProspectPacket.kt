@@ -2,72 +2,38 @@ package space.gtimpact.virtual_world.network
 
 import net.minecraft.client.Minecraft
 import net.minecraft.server.MinecraftServer
-import net.minecraft.util.ChatComponentTranslation
-import net.minecraft.util.EnumChatFormatting
-import space.gtimpact.virtual_world.addon.visual_prospecting.cache.CacheObjectPoint
-import space.gtimpact.virtual_world.addon.visual_prospecting.cache.ClientVirtualWorldCache
-import space.gtimpact.virtual_world.addon.visual_prospecting.cache.PutDataStatus
-import space.gtimpact.virtual_world.addon.visual_prospecting.readPacketDataFluidVein
-import space.gtimpact.virtual_world.addon.visual_prospecting.readPacketDataOreVein
+import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.api.VirtualAPI
-import space.gtimpact.virtual_world.util.ItemStackByteUtil
+import space.gtimpact.virtual_world.api.core.ResourcePos
+import space.gtimpact.virtual_world.api.game.scanner.ScannerClientStateManager
+import space.gtimpact.virtual_world.api.game.scanner.fluids.toData
+import space.gtimpact.virtual_world.api.game.scanner.fluids.toPacketDataFluidVein
+import space.gtimpact.virtual_world.api.game.scanner.ores.toData
+import space.gtimpact.virtual_world.api.game.scanner.ores.toPacketDataOreVein
+import space.gtimpact.virtual_world.api.saving.ClientDataSaver
+import space.gtimpact.virtual_world.api.services.scanning.ScanMode
+import space.gtimpact.virtual_world.api.services.storage.getOreVeinAtVein
+import space.gtimpact.virtual_world.config.Config
 import space.impact.packet_network.network.packets.createPacketStream
 
 val prospectorPacketFluid = createPacketStream(2000) { isServer, read ->
     if (!isServer) {
-        val veins = read.readPacketDataFluidVein()
+        val scanState = read
+            .toPacketDataFluidVein()
+            .toData()
 
-        var status = arrayListOf<PutDataStatus>()
-
-        veins.forEach { data ->
-
-            VirtualAPI.getRegisterFluids().find { it.id == data.veinId }?.also { veinData ->
-
-                status += ClientVirtualWorldCache.putFluid(data.apply {
-                    dimension = dimId
-                    vein = veinData
-                })
-            }
-        }
-
-        if (status.isNotEmpty()) {
-            ChatComponentTranslation("virtual_world.prospected.fluids", status.count { it == PutDataStatus.NEW }, status.count { it == PutDataStatus.UPDATE })
-                .apply {
-                    chatStyle.setItalic(true)
-                    chatStyle.setColor(EnumChatFormatting.GRAY)
-                }.also { veinNotification ->
-                    Minecraft.getMinecraft().thePlayer.addChatMessage(veinNotification)
-                }
-        }
+        ScannerClientStateManager.updateFluids(scanState)
     }
 }
 
 val prospectorPacketOre = createPacketStream(2001) { isServer, read ->
     if (!isServer) {
-        val scan = read.readPacketDataOreVein()
 
-        var status = arrayListOf<PutDataStatus>()
+        val scanState = read
+            .toPacketDataOreVein()
+            .toData()
 
-        scan.veins.forEach { data ->
-
-            VirtualAPI.getRegisterOres().find { it.id == data.veinId }?.also { veinData ->
-
-                status += ClientVirtualWorldCache.putOre(scan.layer, data.apply {
-                    dimension = dimId
-                    vein = veinData
-                })
-            }
-        }
-
-        if (status.isNotEmpty()) {
-            ChatComponentTranslation("virtual_world.prospected.ores", status.count { it == PutDataStatus.NEW }, status.count { it == PutDataStatus.UPDATE })
-                .apply {
-                    chatStyle.setItalic(true)
-                    chatStyle.setColor(EnumChatFormatting.GRAY)
-                }.also { veinNotification ->
-                    Minecraft.getMinecraft().thePlayer.addChatMessage(veinNotification)
-                }
-        }
+        ScannerClientStateManager.updateOres(scanState)
     }
 }
 
@@ -80,26 +46,56 @@ val notifyClientSavePacket = createPacketStream(2002) { isServer, data ->
             serverData?.serverName ?: MinecraftServer.getServer()?.worldName
         }.getOrNull() ?: return@createPacketStream
 
-        if (isSave)
-            ClientVirtualWorldCache.saveCache(serverName)
-        else
-            ClientVirtualWorldCache.loadVeinCache(serverName)
+        if (isSave) {
+            ClientDataSaver.save(serverName)
+        } else {
+            ClientDataSaver.load(serverName)
+        }
     }
 }
 
-val SetObjectToChunkPacket = createPacketStream(2004) { isServer, data ->
-    if (!isServer) {
-        val isRemove = data.readBoolean()
-        val stack = ItemStackByteUtil.readItemStackFromDataInput(data) ?: return@createPacketStream
-        val element = CacheObjectPoint.ObjectElement(name = data.readUTF(), stack = stack)
-        val dim = data.readInt()
+val MineFromClientOrePacket = createPacketStream(2005) { isServer, data ->
+    if (isServer && Config.enableDebug) {
+
+        val layerIndex = data.readInt()
         val x = data.readInt()
         val z = data.readInt()
 
-        if (isRemove) {
-            ClientVirtualWorldCache.removeObjectChunk(dimId = dim, blockX = x, blockZ = z, element = element)
-        } else {
-            ClientVirtualWorldCache.putObjectElement(dimId = dim, blockX = x, blockZ = z, element = element)
+        val instance = VirtualOres.proxy.virtualWorldProvider.instance ?: return@createPacketStream
+        val mining = instance.mining
+
+        val world = serverWorld ?: return@createPacketStream
+        val player = serverPlayer ?: return@createPacketStream
+
+        val pos = ResourcePos(
+            x = x,
+            z = z,
+        )
+
+        val vein = instance.regions.getOreVeinAtVein(
+            dimensionId = world.provider.dimensionId,
+            pos = pos,
+        ) ?: return@createPacketStream
+
+        val layer = vein.layers.find { it.layerIndex == layerIndex } ?: return@createPacketStream
+
+        if (layerIndex == layer.layerIndex) {
+            layer.chunks.forEach {
+                mining.mineOreAtChunk(
+                    dimensionId = world.provider.dimensionId,
+                    chunkPos = it.chunkPos,
+                    layerIndex = layerIndex,
+                    amount = 1,
+                )
+            }
         }
+
+        VirtualAPI.scannerManager.scanOres(
+            player = player,
+            mode = ScanMode.WITH_AMOUNT,
+            dimensionId = world.provider.dimensionId,
+            layer = 1,
+            radiusVeins = 1,
+        )
     }
 }

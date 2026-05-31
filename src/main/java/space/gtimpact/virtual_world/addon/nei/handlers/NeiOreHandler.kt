@@ -2,7 +2,12 @@ package space.gtimpact.virtual_world.addon.nei.handlers
 
 import codechicken.lib.gui.GuiDraw
 import codechicken.nei.PositionedStack
-import codechicken.nei.recipe.*
+import codechicken.nei.recipe.GuiCraftingRecipe
+import codechicken.nei.recipe.GuiRecipe
+import codechicken.nei.recipe.GuiRecipeTab
+import codechicken.nei.recipe.GuiUsageRecipe
+import codechicken.nei.recipe.HandlerInfo
+import codechicken.nei.recipe.TemplateRecipeHandler
 import cpw.mods.fml.common.event.FMLInterModComms
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
@@ -16,7 +21,7 @@ import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.addon.nei.NEIBoostrapConfig
 import space.gtimpact.virtual_world.addon.nei.other.FixedPositionedStack
 import space.gtimpact.virtual_world.api.VirtualAPI
-import space.gtimpact.virtual_world.api.VirtualOreVein
+import space.gtimpact.virtual_world.api.resources.ores.OreVein
 import space.gtimpact.virtual_world.api.virtualWorldNeiFluidHandler
 import space.gtimpact.virtual_world.extras.drawText
 import java.awt.Color
@@ -26,7 +31,8 @@ import kotlin.math.max
 
 class NeiOreHandler : TemplateRecipeHandler() {
 
-    private val registerOres = VirtualAPI.virtualOres
+    private val registerOres = VirtualAPI.resourcesRegistry
+        .oreVeinsMap.values
         .filter { !it.isHidden }
         .sortedBy { it.layer }
 
@@ -72,7 +78,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
     private var ttDisplayed: Boolean = false
 
     override fun drawExtras(recipe: Int) {
-        val cache = arecipes[recipe] as? VirtualOreVeinCachedRecipe
+        val cache = arecipes[recipe] as? OreVeinCachedRecipe
         val ore = cache?.ore ?: return
 
         val clr = Color.BLACK.hashCode()
@@ -90,7 +96,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
         var dims = mutableListOf<String>()
 
         for ((i, dimension) in ore.dimensions.withIndex()) {
-            dims.add((i + 1).toString() + ". " + dimension.second)
+            dims.add((i + 1).toString() + ". " + dimension.label)
         }
 
         ttDisplayed = false
@@ -120,7 +126,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
         if (aStack == null)
             return currenttip
 
-        val tObject = arecipes[aRecipeIndex] as? VirtualOreVeinCachedRecipe
+        val tObject = arecipes[aRecipeIndex] as? OreVeinCachedRecipe
             ?: return currenttip
 
         for (tStack in tObject.mOutputs) {
@@ -137,7 +143,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
     override fun loadCraftingRecipes(outputId: String, vararg results: Any?) {
         if (outputId == overlayIdentifier) {
             for (vein in registerOres) {
-                arecipes.add(VirtualOreVeinCachedRecipe(vein))
+                arecipes.add(OreVeinCachedRecipe(vein))
             }
         } else {
             super.loadCraftingRecipes(outputId, *results)
@@ -149,7 +155,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
         tResults.add(aResult)
 
         for (vein in registerOres) {
-            val tNEIRecipe = VirtualOreVeinCachedRecipe(vein)
+            val tNEIRecipe = OreVeinCachedRecipe(vein)
             for (tStack in tResults) {
                 if (tNEIRecipe.contains(tNEIRecipe.mOutputs, tStack)) {
                     arecipes.add(tNEIRecipe)
@@ -164,7 +170,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
         tInputs.add(ingredient)
 
         for (vein in registerOres) {
-            val tNEIRecipe = VirtualOreVeinCachedRecipe(vein)
+            val tNEIRecipe = OreVeinCachedRecipe(vein)
             for (tStack in tInputs) {
                 if (tNEIRecipe.contains(tNEIRecipe.mOutputs, tStack) || tNEIRecipe.contains(tNEIRecipe.mInputs, tStack)) {
                     arecipes.add(tNEIRecipe)
@@ -175,13 +181,13 @@ class NeiOreHandler : TemplateRecipeHandler() {
     }
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
-    inner class VirtualOreVeinCachedRecipe : TemplateRecipeHandler.CachedRecipe {
+    inner class OreVeinCachedRecipe : TemplateRecipeHandler.CachedRecipe {
 
         val mOutputs: MutableList<PositionedStack> = ArrayList()
         val mInputs: MutableList<PositionedStack> = ArrayList()
-        val ore: VirtualOreVein
+        val ore: OreVein
 
-        constructor(vein: VirtualOreVein) {
+        constructor(vein: OreVein) {
             this.ore = vein
             var x = 0
 
@@ -192,7 +198,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
                 if (i % 8 == 0) x++
                 mOutputs.add(
                     FixedPositionedStack(
-                        stack = component.ore,
+                        stack = component.stack,
                         x = 4 + i * 18,
                         y = 5 + x * 18,
                         chance = component.chance * 100

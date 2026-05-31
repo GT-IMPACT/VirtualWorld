@@ -2,7 +2,12 @@ package space.gtimpact.virtual_world.addon.nei.handlers
 
 import codechicken.lib.gui.GuiDraw
 import codechicken.nei.PositionedStack
-import codechicken.nei.recipe.*
+import codechicken.nei.recipe.GuiCraftingRecipe
+import codechicken.nei.recipe.GuiRecipe
+import codechicken.nei.recipe.GuiRecipeTab
+import codechicken.nei.recipe.GuiUsageRecipe
+import codechicken.nei.recipe.HandlerInfo
+import codechicken.nei.recipe.TemplateRecipeHandler
 import cpw.mods.fml.common.event.FMLInterModComms
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
@@ -17,7 +22,7 @@ import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.addon.nei.NEIBoostrapConfig
 import space.gtimpact.virtual_world.addon.nei.other.FixedPositionedStack
 import space.gtimpact.virtual_world.api.VirtualAPI
-import space.gtimpact.virtual_world.api.VirtualFluidVein
+import space.gtimpact.virtual_world.api.resources.fluids.FluidVein
 import space.gtimpact.virtual_world.api.virtualWorldNeiFluidHandler
 import space.gtimpact.virtual_world.extras.drawText
 import java.awt.Color
@@ -26,20 +31,22 @@ import java.awt.Rectangle
 class NeiFluidDimensionsHandler : TemplateRecipeHandler() {
 
     private val registerFluids = run {
-        val map = hashMapOf<String, List<VirtualFluidVein>>()
+        val map = hashMapOf<String, List<FluidVein>>()
 
-        VirtualAPI.virtualFluids
+        val veins = VirtualAPI.resourcesRegistry.fluidVeinsMap.values
+
+        veins
             .filter { !it.isHidden }
             .flatMap { it.dimensions }
             .distinct()
             .forEach {
-                val list = arrayListOf<VirtualFluidVein>()
-                VirtualAPI.virtualFluids.forEach { vein ->
+                val list = arrayListOf<FluidVein>()
+                veins.forEach { vein ->
                     if (vein.dimensions.contains(it)) {
                         list += vein
                     }
                 }
-                map[it.second] = list
+                map[it.label] = list
             }
 
         map.map { it.key to it.value }
@@ -126,7 +133,12 @@ class NeiFluidDimensionsHandler : TemplateRecipeHandler() {
         GuiDraw.drawTexturedModalRect(-4, -8, 1, 3, 174, 80)
     }
 
-    override fun handleItemTooltip(gui: GuiRecipe<*>?, aStack: ItemStack?, currenttip: MutableList<String?>, aRecipeIndex: Int): List<String?> {
+    override fun handleItemTooltip(
+        gui: GuiRecipe<*>?,
+        aStack: ItemStack?,
+        currenttip: MutableList<String?>,
+        aRecipeIndex: Int
+    ): List<String?> {
         if (aStack == null)
             return currenttip
 
@@ -136,7 +148,11 @@ class NeiFluidDimensionsHandler : TemplateRecipeHandler() {
         for (tStack in tObject.mOutputs) {
             if (aStack == tStack.item) {
                 if ((tStack !is FixedPositionedStack) || (tStack.chance <= 0) || (tStack.chance == 10000)) break
-                currenttip.add((tStack.chance / 100).toString() + "." + (if (tStack.chance % 100 < 10) ("0" + tStack.chance % 100) else Integer.valueOf(tStack.chance % 100)) + "%")
+                currenttip.add(
+                    (tStack.chance / 100).toString() + "." + (if (tStack.chance % 100 < 10) ("0" + tStack.chance % 100) else Integer.valueOf(
+                        tStack.chance % 100
+                    )) + "%"
+                )
                 break
             }
         }
@@ -176,7 +192,11 @@ class NeiFluidDimensionsHandler : TemplateRecipeHandler() {
         for (vein in registerFluids) {
             val tNEIRecipe = VirtualOreVeinCachedRecipe(vein)
             for (tStack in tInputs) {
-                if (tNEIRecipe.contains(tNEIRecipe.mOutputs, tStack) || tNEIRecipe.contains(tNEIRecipe.mInputs, tStack)) {
+                if (tNEIRecipe.contains(tNEIRecipe.mOutputs, tStack) || tNEIRecipe.contains(
+                        tNEIRecipe.mInputs,
+                        tStack
+                    )
+                ) {
                     arecipes.add(tNEIRecipe)
                     break
                 }
@@ -189,14 +209,16 @@ class NeiFluidDimensionsHandler : TemplateRecipeHandler() {
 
         val mOutputs: MutableList<PositionedStack> = ArrayList()
         val mInputs: MutableList<PositionedStack> = ArrayList()
-        val ore: Pair<String, List<VirtualFluidVein>>
+        val ore: Pair<String, List<FluidVein>>
 
-        constructor(pair: Pair<String, List<VirtualFluidVein>>) {
+        constructor(pair: Pair<String, List<FluidVein>>) {
             this.ore = pair
 
             val stacks = hashSetOf<Fluid>()
             for (vein in ore.second) {
-                stacks.add(vein.fluid.getFluid())
+                if (vein.fluid != null) {
+                    stacks.add(vein.fluid.getFluid())
+                }
             }
             var y = 0
             var count = 0
