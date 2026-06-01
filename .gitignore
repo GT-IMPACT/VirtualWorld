@@ -31,3 +31,4 @@ run/
 runDir/
 .gitattributes
 /run/
+/layout.json

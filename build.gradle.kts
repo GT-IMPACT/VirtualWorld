@@ -28,16 +28,23 @@ repositories {
     maven("https://maven.accident.space/repository/maven-public/") {
         mavenContent {
             includeGroup("space.impact")
+            includeGroup("com.github.GTNewHorizons")
             includeGroupByRegex("space\\.impact\\..+")
+        }
+        credentials {
+            username = System.getenv("MAVEN_USER") ?: "NONE"
+            password = System.getenv("MAVEN_PASSWORD") ?: "NONE"
         }
     }
 }
 
 dependencies {
-    api("com.github.GTNewHorizons:CodeChickenCore:1.1.13:dev")
+    api("com.github.GTNewHorizons:CodeChickenCore:1.3.11:dev") {
+        version { strictly("1.3.11") }
+    }
     api("com.github.GTNewHorizons:NotEnoughItems:2.6.0-GTNH:dev")
-    api("space.impact:Packet-Network:1.1.8:dev")
+    api("space.impact:Packet-network:1.1.8.dirty:dev")
     api("space.impact:VisualProspecting:1.3.2:dev")
 
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.6.0")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.7.3")
 }

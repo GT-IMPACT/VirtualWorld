@@ -9,7 +9,7 @@ fun registerPackets() {
     registerPacket(prospectorPacketFluid)
     registerPacket(prospectorPacketOre)
     registerPacket(notifyClientSavePacket)
-    registerPacket(SetObjectToChunkPacket)
+    registerPacket(MineFromClientOrePacket)
 }
 
 fun EntityPlayer.sendPacket(packet: ImpactPacket) {

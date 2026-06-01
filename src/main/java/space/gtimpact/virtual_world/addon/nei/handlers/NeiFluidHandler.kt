@@ -2,12 +2,15 @@ package space.gtimpact.virtual_world.addon.nei.handlers
 
 import codechicken.lib.gui.GuiDraw
 import codechicken.nei.PositionedStack
-import codechicken.nei.recipe.*
+import codechicken.nei.recipe.GuiCraftingRecipe
+import codechicken.nei.recipe.GuiRecipe
+import codechicken.nei.recipe.GuiRecipeTab
+import codechicken.nei.recipe.GuiUsageRecipe
+import codechicken.nei.recipe.HandlerInfo
+import codechicken.nei.recipe.TemplateRecipeHandler
 import cpw.mods.fml.common.event.FMLInterModComms
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fluids.FluidRegistry
-import net.minecraftforge.fluids.FluidStack
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 import space.gtimpact.virtual_world.ASSETS
@@ -16,11 +19,9 @@ import space.gtimpact.virtual_world.MODNAME
 import space.gtimpact.virtual_world.VirtualOres
 import space.gtimpact.virtual_world.addon.nei.NEIBoostrapConfig
 import space.gtimpact.virtual_world.addon.nei.other.FixedPositionedStack
-import space.gtimpact.virtual_world.api.TypeFluidVein
 import space.gtimpact.virtual_world.api.VirtualAPI
-import space.gtimpact.virtual_world.api.VirtualFluidVein
+import space.gtimpact.virtual_world.api.resources.fluids.FluidVein
 import space.gtimpact.virtual_world.api.virtualWorldNeiFluidHandler
-import space.gtimpact.virtual_world.config.Config
 import space.gtimpact.virtual_world.extras.drawText
 import java.awt.Color
 import java.awt.Rectangle
@@ -28,7 +29,7 @@ import java.text.NumberFormat
 
 class NeiFluidHandler : TemplateRecipeHandler() {
 
-    private val registerFluids = VirtualAPI.virtualFluids
+    private val registerFluids = VirtualAPI.resourcesRegistry.fluidVeinsMap.values
         .filter { !it.isHidden }
         .sortedBy { it.name }
 
@@ -74,7 +75,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
     private var ttDisplayed: Boolean = false
 
     override fun drawExtras(recipe: Int) {
-        val cache = arecipes[recipe] as? VirtualFluidVeinCachedRecipe
+        val cache = arecipes[recipe] as? FluidVeinCachedRecipe
         val ore = cache?.fluid ?: return
 
         val clr = Color.BLACK.hashCode()
@@ -86,19 +87,11 @@ class NeiFluidHandler : TemplateRecipeHandler() {
         val sizeVein = NumberFormat.getNumberInstance().format(ore.rangeSize.first) + " - " + NumberFormat.getNumberInstance().format(ore.rangeSize.last)
         drawText(4, 50, "Size: " + sizeVein + "k cycles", clr)
 
-        TypeFluidVein.entries.forEach {
-            when (it) {
-                TypeFluidVein.LP -> if (Config.countWaterForLPDrill > 0) drawText(4, 65, "Low Pressure Consume:", clr)
-                TypeFluidVein.MP -> if (Config.countWaterForMPDrill > 0) drawText(4, 85 + 10, "Medium Pressure Consume:", clr)
-                TypeFluidVein.HP -> if (Config.countWaterForHPDrill > 0) drawText(4, 105 + 20, "High Pressure Consume:", clr)
-            }
-        }
-
         drawText(164 - GuiDraw.getStringWidth("Use Shift"), 0, "Use Shift", Color(84, 81, 81).hashCode())
         var dims = mutableListOf<String>()
 
         for ((i, dimension) in ore.dimensions.withIndex()) {
-            dims.add((i + 1).toString() + ". " + dimension.second)
+            dims.add((i + 1).toString() + ". " + dimension.label)
         }
 
         ttDisplayed = false
@@ -128,7 +121,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
         if (aStack == null)
             return currenttip
 
-        val tObject = arecipes[aRecipeIndex] as? VirtualFluidVeinCachedRecipe
+        val tObject = arecipes[aRecipeIndex] as? FluidVeinCachedRecipe
             ?: return currenttip
 
         for (tStack in tObject.mOutputs) {
@@ -145,7 +138,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
     override fun loadCraftingRecipes(outputId: String, vararg results: Any?) {
         if (outputId == overlayIdentifier) {
             for (vein in registerFluids) {
-                arecipes.add(VirtualFluidVeinCachedRecipe(vein))
+                arecipes.add(FluidVeinCachedRecipe(vein))
             }
         } else {
             super.loadCraftingRecipes(outputId, *results)
@@ -157,7 +150,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
         tResults.add(aResult)
 
         for (vein in registerFluids) {
-            val tNEIRecipe = VirtualFluidVeinCachedRecipe(vein)
+            val tNEIRecipe = FluidVeinCachedRecipe(vein)
             for (tStack in tResults) {
                 if (tNEIRecipe.contains(tNEIRecipe.mOutputs, tStack)) {
                     arecipes.add(tNEIRecipe)
@@ -172,7 +165,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
         tInputs.add(ingredient)
 
         for (vein in registerFluids) {
-            val tNEIRecipe = VirtualFluidVeinCachedRecipe(vein)
+            val tNEIRecipe = FluidVeinCachedRecipe(vein)
             for (tStack in tInputs) {
                 if (tNEIRecipe.contains(tNEIRecipe.mOutputs, tStack) || tNEIRecipe.contains(tNEIRecipe.mInputs, tStack)) {
                     arecipes.add(tNEIRecipe)
@@ -183,30 +176,17 @@ class NeiFluidHandler : TemplateRecipeHandler() {
     }
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
-    inner class VirtualFluidVeinCachedRecipe : TemplateRecipeHandler.CachedRecipe {
+    inner class FluidVeinCachedRecipe : TemplateRecipeHandler.CachedRecipe {
 
         val mOutputs: MutableList<PositionedStack> = ArrayList()
         val mInputs: MutableList<PositionedStack> = ArrayList()
-        val fluid: VirtualFluidVein
+        val fluid: FluidVein
 
-        constructor(vein: VirtualFluidVein) {
+        constructor(vein: FluidVein) {
             this.fluid = vein
 
             virtualWorldNeiFluidHandler.getItemFromFluid(fluid.fluid, false)?.also { stack ->
                 mOutputs.add(FixedPositionedStack(stack = stack, x = 4, y = 25))
-            }
-
-            TypeFluidVein.entries.forEachIndexed { i, type ->
-
-                val fluidStack = when (type) {
-                    TypeFluidVein.LP -> if (Config.countWaterForLPDrill > 0) FluidStack(FluidRegistry.WATER, Config.countWaterForLPDrill) else null
-                    TypeFluidVein.MP -> if (Config.countWaterForMPDrill > 0) FluidStack(FluidRegistry.WATER, Config.countWaterForMPDrill) else null
-                    TypeFluidVein.HP -> if (Config.countWaterForHPDrill > 0) FluidStack(FluidRegistry.WATER, Config.countWaterForHPDrill) else null
-                }
-
-                virtualWorldNeiFluidHandler.getItemFromFluid(fluidStack, true)?.also { stack ->
-                    mInputs.add(FixedPositionedStack(stack = stack, x = 4, y = 75 + i * 30))
-                }
             }
         }
 

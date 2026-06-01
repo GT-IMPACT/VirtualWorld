@@ -80,14 +80,19 @@ class VirtualWorldSaveData(name: String) : WorldSavedData(name) {
     override fun readFromNBT(nbt: NBTTagCompound) {
         val worldTag = nbt.getCompoundTag(NBT.VIRTUAL_WORLD)
 
-        val worldServer = DimensionManager.getWorld(worldTag.getInteger(NBT.WORLD_ID))
+        val worldServer = DimensionManager
+            .getWorld(worldTag.getInteger(NBT.WORLD_ID))
+            ?: return
 
-        regionsHashed.clear()
-        regionsHashed += worldTag.getIntArray(NBT.WORLD_REGION_HASH).toSet()
-
-        if (worldServer is IWorldNbt) {
-            worldServer.readFromNBT(worldTag)
-        }
+        SaveDataRegionSnapshotStore.readFromNBT(
+            world = worldServer,
+            nbt = worldTag,
+        )
+        
+        SaveDataMiningStateStore.readFromNBT(
+            world = worldServer,
+            nbt = worldTag,
+        )
     }
 
     override fun writeToNBT(nbt: NBTTagCompound) {
@@ -95,12 +100,20 @@ class VirtualWorldSaveData(name: String) : WorldSavedData(name) {
 
         val worldServer = world
 
-        if (worldServer is IWorldNbt) {
-            worldServer.writeToNBT(worldTag)
+        if (worldServer != null) {
             worldTag.setInteger(NBT.WORLD_ID, worldServer.provider.dimensionId)
+
+            SaveDataRegionSnapshotStore.writeToNBT(
+                world = worldServer,
+                nbt = worldTag,
+            )
+
+            SaveDataMiningStateStore.writeToNBT(
+                world = worldServer,
+                nbt = worldTag,
+            )
         }
 
-        worldTag.setIntArray(NBT.WORLD_REGION_HASH, regionsHashed.toIntArray())
         nbt.setTag(NBT.VIRTUAL_WORLD, worldTag)
     }
 }

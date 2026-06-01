@@ -13,15 +13,19 @@ object Config {
     var MAX_SIZE_REGISTERED_VIRTUAL_FLUIDS = 200
     var IS_DISABLED_VIRTUAL_ORES = false
     var IS_DISABLED_VIRTUAL_FLUIDS = false
-    var IS_DISABLED_SCANNER_TOOL = false
 
     var countWaterForLPDrill = 10
     var countWaterForMPDrill = 100
     var countWaterForHPDrill = 1000
 
     var enableDebug = false
+    var hasTestResources = false
 
     var scannerDischargeAmount = 100_000
+
+    // newGen
+
+    var maxCachedRegions: Int = 256
 
     private inline fun onPostCreate(configFile: File?, crossinline action: (Configuration) -> Unit) {
         Configuration(configFile).let { config ->
@@ -64,12 +68,6 @@ object Config {
                 IS_DISABLED_VIRTUAL_FLUIDS,
                 "Disabled Virtual Fluids"
             )
-            IS_DISABLED_SCANNER_TOOL = cfg.getBoolean(
-                "isDisabledScannerTool",
-                GENERAL,
-                IS_DISABLED_SCANNER_TOOL,
-                "Disabled Scanner Tool"
-            )
 
             countWaterForLPDrill = cfg.getInt(
                 "countWaterForLPDrill",
@@ -103,6 +101,12 @@ object Config {
                 GENERAL,
                 enableDebug,
                 "Enabled Debug Mode"
+            )
+            hasTestResources = cfg.getBoolean(
+                "hasTestResources",
+                GENERAL,
+                hasTestResources,
+                "Enabled Test Resources"
             )
 
             scannerDischargeAmount = cfg.getInt(
