@@ -1,6 +1,7 @@
 package space.gtimpact.virtual_world.api.resources.fluids
 
 import net.minecraft.nbt.NBTTagCompound
+import space.gtimpact.virtual_world.api.VirtualAPI
 import space.gtimpact.virtual_world.api.core.ResourcePos
 import space.gtimpact.virtual_world.api.core.WorldPos
 import space.gtimpact.virtual_world.api.resources.VirtualResource
@@ -14,7 +15,7 @@ data class FluidVeinResourceSnapshot(
     override val originZ: Int,
     val fluid: ResourceSnapshot,
     val amount: Int,
-): VirtualResourceSnapshot {
+) : VirtualResourceSnapshot {
 
     override fun toResource(): VirtualResource {
         return FluidVeinResource(
@@ -26,16 +27,17 @@ data class FluidVeinResourceSnapshot(
     }
 
     private fun ResourceSnapshot.toFluidType(amount: Int): FluidVein {
-        return FluidVein(
-            id = stableId,
-            name = displayName,
-            color = color,
-            dimensions = emptySet(),
-            weight = 0.0,
-            rangeSize = amount..amount,
-            fluid = null,
-            isHidden = true,
-        )
+        return VirtualAPI.resourcesRegistry.getFluidVein(stableId)
+            ?: FluidVein(
+                id = stableId,
+                name = displayName,
+                color = color,
+                dimensions = emptySet(),
+                weight = 0.0,
+                rangeSize = amount..amount,
+                fluid = null,
+                isHidden = true,
+            )
     }
 
     override fun toNbt(): NBTTagCompound {
