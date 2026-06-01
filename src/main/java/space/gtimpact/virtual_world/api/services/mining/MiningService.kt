@@ -129,7 +129,7 @@ class MiningService(
         layerIndex: Int = 0,
         amount: Int,
     ): OreMiningResult? {
-        if (amount <= 0) return null
+        if (amount < 0) return null
 
         val oreChunk = getOreChunkStateAtChunk(
             dimensionId = dimensionId,
@@ -253,7 +253,7 @@ class MiningService(
         veinPos: ResourcePos,
         volume: Int,
     ): FluidExtractionResult? {
-        if (volume <= 0) return null
+        if (volume < 0) return null
 
         val fluid = getFluidVeinStateAtVein(
             dimensionId = dimensionId,
