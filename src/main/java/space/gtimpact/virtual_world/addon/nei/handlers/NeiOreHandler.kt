@@ -95,7 +95,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
         drawText(164 - GuiDraw.getStringWidth("Use Shift"), 0, "Use Shift", Color(84, 81, 81).hashCode())
         var dims = mutableListOf<String>()
 
-        for ((i, dimension) in ore.dimensions.withIndex()) {
+        for ((i, dimension) in ore.dimensions.sortedBy { it.sort }.withIndex()) {
             dims.add((i + 1).toString() + ". " + dimension.label)
         }
 
