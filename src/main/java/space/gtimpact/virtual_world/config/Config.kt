@@ -9,11 +9,6 @@ object Config {
     private const val GENERAL = "general"
 
     //Values
-    var MAX_SIZE_REGISTERED_VIRTUAL_ORES = 200
-    var MAX_SIZE_REGISTERED_VIRTUAL_FLUIDS = 200
-    var IS_DISABLED_VIRTUAL_ORES = false
-    var IS_DISABLED_VIRTUAL_FLUIDS = false
-
     var countWaterForLPDrill = 10
     var countWaterForMPDrill = 100
     var countWaterForHPDrill = 1000
@@ -26,6 +21,8 @@ object Config {
     // newGen
 
     var maxCachedRegions: Int = 256
+    var emptyWeight: Double = 2.0
+    var balanceAreaVeins: Int = 128
 
     private inline fun onPostCreate(configFile: File?, crossinline action: (Configuration) -> Unit) {
         Configuration(configFile).let { config ->
@@ -40,35 +37,6 @@ object Config {
     fun createConfig(configFile: File?) {
         val config = File(File(configFile, "IMPACT"), "VirtualWorld.cfg")
         onPostCreate(config) { cfg ->
-            MAX_SIZE_REGISTERED_VIRTUAL_ORES = cfg.getInt(
-                "maxSizeRegisteredVirtualOres",
-                GENERAL,
-                MAX_SIZE_REGISTERED_VIRTUAL_ORES,
-                200,
-                1000,
-                "Max size Registered Virtual Ores"
-            )
-            MAX_SIZE_REGISTERED_VIRTUAL_FLUIDS = cfg.getInt(
-                "maxSizeRegisteredVirtualFluids",
-                GENERAL,
-                MAX_SIZE_REGISTERED_VIRTUAL_FLUIDS,
-                200,
-                1000,
-                "Max size Registered Virtual Fluids"
-            )
-            IS_DISABLED_VIRTUAL_ORES = cfg.getBoolean(
-                "isDisabledVirtualOres",
-                GENERAL,
-                IS_DISABLED_VIRTUAL_ORES,
-                "Disabled Virtual Ores"
-            )
-            IS_DISABLED_VIRTUAL_FLUIDS = cfg.getBoolean(
-                "isDisabledVirtualFluids",
-                GENERAL,
-                IS_DISABLED_VIRTUAL_FLUIDS,
-                "Disabled Virtual Fluids"
-            )
-
             countWaterForLPDrill = cfg.getInt(
                 "countWaterForLPDrill",
                 GENERAL,
@@ -116,6 +84,33 @@ object Config {
                 0,
                 1_000_000,
                 "Discharge amount scanner per operation"
+            )
+
+            maxCachedRegions = cfg.getInt(
+                "maxCachedRegions",
+                GENERAL,
+                maxCachedRegions,
+                16,
+                1024,
+                "Maximum number of generated regions kept in memory cache."
+            )
+
+            emptyWeight = cfg.getFloat(
+                "emptyWeight",
+                GENERAL,
+                emptyWeight.toFloat(),
+                0.0f,
+                50.0f,
+                "Virtual empty entry weight used by balanced resource generation. Higher value increases chance that no ore/fluid vein is generated."
+            ).toDouble()
+
+            balanceAreaVeins = cfg.getInt(
+                "balanceAreaVeins",
+                GENERAL,
+                balanceAreaVeins,
+                8,
+                1024,
+                "Size of one balanced generation area in vein cells per axis. Larger values improve weight distribution accuracy but make balance repeat over a larger area"
             )
         }
     }

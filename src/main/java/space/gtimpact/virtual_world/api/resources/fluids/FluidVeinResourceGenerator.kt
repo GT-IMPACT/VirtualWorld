@@ -3,14 +3,19 @@ package space.gtimpact.virtual_world.api.resources.fluids
 import space.gtimpact.virtual_world.api.core.ResourcePos
 import space.gtimpact.virtual_world.api.core.StableRandom
 import space.gtimpact.virtual_world.api.core.toWorldOrigin
+import space.gtimpact.virtual_world.api.resources.BalancedWeightedPicker
 import space.gtimpact.virtual_world.api.resources.VirtualResource
 import space.gtimpact.virtual_world.api.resources.VirtualResourcesGenerator
-import kotlin.random.Random
 
 class FluidVeinResourceGenerator(
     private val worldSeed: Long,
     private val config: FluidVeinResourceGeneratorConfig,
 ): VirtualResourcesGenerator {
+
+    private val fluidPicker = BalancedWeightedPicker<FluidVein>(
+        idOf = { fluid -> fluid.id },
+        weightOf = { fluid -> fluid.weight },
+    )
 
     override fun generate(
         dimensionId: Int,
@@ -28,9 +33,9 @@ class FluidVeinResourceGenerator(
         )
 
         val fluid = pickFluid(
-            random = random,
-            totalWeight = config.totalWeight,
-            fluids = availableFluids
+            dimensionId = dimensionId,
+            pos = pos,
+            fluids = availableFluids,
         )
 
         val origin = pos.toWorldOrigin()
@@ -53,26 +58,22 @@ class FluidVeinResourceGenerator(
     }
 
     private fun pickFluid(
-        random: Random,
-        totalWeight: Double,
-        fluids: List<FluidVein>
+        dimensionId: Int,
+        pos: ResourcePos,
+        fluids: List<FluidVein>,
     ): FluidVein? {
+        return fluidPicker.pick(
+            worldSeed = worldSeed,
+            dimensionId = dimensionId,
+            pos = pos,
+            balanceAreaVeins = config.balanceAreaVeins,
+            emptyWeight = config.emptyWeight,
+            channel = FLUID_CHANNEL,
+            items = fluids,
+        )
+    }
 
-        if (fluids.isEmpty()) {
-            return null
-        }
-
-        val roll = random.nextDouble(totalWeight)
-        var cursor = 0.0
-
-        for (fluid in fluids) {
-            cursor += fluid.weight
-
-            if (roll < cursor) {
-                return fluid
-            }
-        }
-
-        return null
+    private companion object {
+        const val FLUID_CHANNEL = -5797282940391623497L
     }
 }

@@ -32,3 +32,4 @@ runDir/
 .gitattributes
 /run/
 /layout.json
+.kotlin

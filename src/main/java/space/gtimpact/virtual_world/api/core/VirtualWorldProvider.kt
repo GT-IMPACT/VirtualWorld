@@ -3,18 +3,28 @@ package space.gtimpact.virtual_world.api.core
 import space.gtimpact.virtual_world.api.resources.fluids.FluidVeinResourceGeneratorConfig
 import space.gtimpact.virtual_world.api.resources.ores.OreVeinLayerConfig
 import space.gtimpact.virtual_world.api.resources.ores.OreVeinResourceGeneratorConfig
+import space.gtimpact.virtual_world.config.Config
 
 class VirtualWorldProvider {
 
     internal val oreVeinResourceGeneratorConfig = OreVeinResourceGeneratorConfig(
         layers = listOf(
-            OreVeinLayerConfig(layerIndex = 0, totalWeight = 100.0),
-            OreVeinLayerConfig(layerIndex = 1, totalWeight = 100.0),
+            OreVeinLayerConfig(
+                layerIndex = 0,
+                balanceAreaVeins = Config.balanceAreaVeins,
+                emptyWeight = Config.emptyWeight,
+            ),
+            OreVeinLayerConfig(
+                layerIndex = 1,
+                balanceAreaVeins = Config.balanceAreaVeins,
+                emptyWeight = Config.emptyWeight,
+            ),
         ),
     )
 
     internal val fluidVeinResourceGeneratorConfig = FluidVeinResourceGeneratorConfig(
-        totalWeight = 100.0,
+        balanceAreaVeins = Config.balanceAreaVeins,
+        emptyWeight = Config.emptyWeight,
     )
 
     internal var instance: VirtualWorld? = null

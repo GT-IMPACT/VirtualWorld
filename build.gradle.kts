@@ -46,5 +46,7 @@ dependencies {
     api("space.impact:Packet-network:1.1.8.dirty:dev")
     api("space.impact:VisualProspecting:1.3.2:dev")
 
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:${libs.versions.kotlin.get()}")
+
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.7.3")
 }

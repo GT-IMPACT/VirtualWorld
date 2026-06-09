@@ -3,7 +3,8 @@ package space.gtimpact.virtual_world.api.resources.fluids
 import space.gtimpact.virtual_world.api.VirtualAPI
 
 class FluidVeinResourceGeneratorConfig(
-    val totalWeight: Double = 100.0,
+    val balanceAreaVeins: Int = 128,
+    val emptyWeight: Double = 0.0,
 ) {
 
     fun getFluidsFor(

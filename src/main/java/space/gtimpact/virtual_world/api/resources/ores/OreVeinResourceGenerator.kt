@@ -5,14 +5,19 @@ import space.gtimpact.virtual_world.api.core.ResourcePos
 import space.gtimpact.virtual_world.api.core.StableRandom
 import space.gtimpact.virtual_world.api.core.WorldGrid
 import space.gtimpact.virtual_world.api.core.toWorldOrigin
+import space.gtimpact.virtual_world.api.resources.BalancedWeightedPicker
 import space.gtimpact.virtual_world.api.resources.VirtualResource
 import space.gtimpact.virtual_world.api.resources.VirtualResourcesGenerator
-import kotlin.random.Random
 
 class OreVeinResourceGenerator(
     private val worldSeed: Long,
     private val config: OreVeinResourceGeneratorConfig,
 ): VirtualResourcesGenerator {
+
+    private val orePicker = BalancedWeightedPicker<OreVein>(
+        idOf = { ore -> ore.id },
+        weightOf = { ore -> ore.weight },
+    )
 
     override fun generate(
         dimensionId: Int,
@@ -59,8 +64,9 @@ class OreVeinResourceGenerator(
         )
 
         val ore = pickOre(
-            random = random,
-            totalWeight = layerConfig.totalWeight,
+            dimensionId = dimensionId,
+            pos = pos,
+            layerConfig = layerConfig,
             ores = availableOres,
         ) ?: return null
 
@@ -97,26 +103,24 @@ class OreVeinResourceGenerator(
     }
 
     private fun pickOre(
-        random: Random,
-        totalWeight: Double,
-        ores: List<OreVein>
+        dimensionId: Int,
+        pos: ResourcePos,
+        layerConfig: OreVeinLayerConfig,
+        ores: List<OreVein>,
     ): OreVein? {
+        return orePicker.pick(
+            worldSeed = worldSeed,
+            dimensionId = dimensionId,
+            pos = pos,
+            balanceAreaVeins = layerConfig.balanceAreaVeins,
+            emptyWeight = layerConfig.emptyWeight,
+            channel = ORE_CHANNEL xor (layerConfig.layerIndex.toLong() * LAYER_CHANNEL_CONST),
+            items = ores,
+        )
+    }
 
-        if (ores.isEmpty()) {
-            return null
-        }
-
-        val roll = random.nextDouble(totalWeight)
-        var cursor = 0.0
-
-        for (ore in ores) {
-            cursor += ore.weight
-
-            if (roll < cursor) {
-                return ore
-            }
-        }
-
-        return null
+    private companion object {
+        const val ORE_CHANNEL = -3372029247567499371L
+        const val LAYER_CHANNEL_CONST = -7723592293110705685L
     }
 }
