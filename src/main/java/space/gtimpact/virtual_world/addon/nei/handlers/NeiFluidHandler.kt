@@ -85,7 +85,7 @@ class NeiFluidHandler : TemplateRecipeHandler() {
         drawText(4, 12, "$vName Vein", clr)
 
         val sizeVein = NumberFormat.getNumberInstance().format(ore.rangeSize.first) + " - " + NumberFormat.getNumberInstance().format(ore.rangeSize.last)
-        drawText(4, 50, "Size: " + sizeVein + "k cycles", clr)
+        drawText(4, 50, "Size: $sizeVein cycles", clr)
 
         drawText(164 - GuiDraw.getStringWidth("Use Shift"), 0, "Use Shift", Color(84, 81, 81).hashCode())
         var dims = mutableListOf<String>()

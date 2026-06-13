@@ -89,7 +89,7 @@ class NeiOreHandler : TemplateRecipeHandler() {
 
         if (virtualWorldNeiFluidHandler.isModified) drawText(4, 48, "Need Special Fluid (per cycle):", clr)
         val sizeVein = NumberFormat.getNumberInstance().format(ore.rangeSize.first) + " - " + NumberFormat.getNumberInstance().format(ore.rangeSize.last)
-        drawText(4, 84, "Size: " + sizeVein + "k cycles", clr)
+        drawText(4, 84, "Size: $sizeVein cycles", clr)
         drawText(4, 96, "Layer: ${ore.layer}", clr)
 
         drawText(164 - GuiDraw.getStringWidth("Use Shift"), 0, "Use Shift", Color(84, 81, 81).hashCode())
