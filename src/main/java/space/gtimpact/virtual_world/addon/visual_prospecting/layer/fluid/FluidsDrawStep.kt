@@ -1,5 +1,6 @@
 package space.gtimpact.virtual_world.addon.visual_prospecting.layer.fluid
 
+import journeymap.client.forge.helper.ForgeHelper
 import journeymap.client.render.draw.DrawStep
 import journeymap.client.render.draw.DrawUtil
 import journeymap.client.render.map.GridRenderer
@@ -58,19 +59,29 @@ class FluidsDrawStep(
             )
 
             if ((hasFullScreenRender || hasMinimapRender) && Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
+                val label = "virtual_world.fluids.remaining_cycles".toTranslate(
+                    NumberFormat.getIntegerInstance().format(location.remainingAmount),
+                )
+                val fontRenderer = ForgeHelper.INSTANCE.getFontRenderer()
+                // JourneyMap adds 2.5 pixels of background padding on each side.
+                val labelWidth = fontRenderer.getStringWidth(label) + 5.0
+                val labelHeight = DrawUtil.getLabelHeight(fontRenderer, false).toDouble()
+                val labelScale = minOf(
+                    fontScale * 1.25.pow(gridRenderer.zoom.toDouble()),
+                    (size - 4.0 * blockPixelSize) / labelWidth,
+                    size / 3.0 / labelHeight,
+                )
                 DrawUtil.drawLabel(
-                    "virtual_world.fluids.remaining_cycles".toTranslate(
-                        NumberFormat.getIntegerInstance().format(location.remainingAmount),
-                    ),
-                    x + 7.5 * blockPixelSize * 4,
-                    y + 7.5 * blockPixelSize * 4,
+                    label,
+                    x + size / 2.0 - gap / 2.0,
+                    y + size / 2.0 - gap / 2.0,
                     DrawUtil.HAlign.Center,
                     DrawUtil.VAlign.Middle,
                     0x000000,
                     180,
                     0x00FFFFFF,
                     255,
-                    fontScale * 1.25.pow(gridRenderer.zoom.toDouble()),
+                    labelScale,
                     false,
                     rotation,
                 )
