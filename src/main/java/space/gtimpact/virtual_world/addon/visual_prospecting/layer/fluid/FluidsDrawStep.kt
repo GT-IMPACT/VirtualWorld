@@ -5,6 +5,8 @@ import journeymap.client.render.draw.DrawUtil
 import journeymap.client.render.map.GridRenderer
 import org.lwjgl.input.Keyboard
 import space.gtimpact.virtual_world.addon.visual_prospecting.MapSettings
+import space.gtimpact.virtual_world.extras.toTranslate
+import java.text.NumberFormat
 import kotlin.math.pow
 
 class FluidsDrawStep(
@@ -43,8 +45,8 @@ class FluidsDrawStep(
 
         if (location.remainingAmount >= 0 && location.generatedAmount >= 0) {
 
-            val percentAmount = 100 * location.remainingAmount / location.maxGeneratedSize
-            val alpha = 225 * percentAmount / 100
+            val fullness = location.remainingAmount.toDouble() / location.maxGeneratedSize.coerceAtLeast(1)
+            val alpha = (225 * fullness.coerceIn(0.0, 1.0)).toInt()
 
             DrawUtil.drawRectangle(
                 x,
@@ -57,7 +59,9 @@ class FluidsDrawStep(
 
             if ((hasFullScreenRender || hasMinimapRender) && Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
                 DrawUtil.drawLabel(
-                    "${percentAmount}%",
+                    "virtual_world.fluids.remaining_cycles".toTranslate(
+                        NumberFormat.getIntegerInstance().format(location.remainingAmount),
+                    ),
                     x + 7.5 * blockPixelSize * 4,
                     y + 7.5 * blockPixelSize * 4,
                     DrawUtil.HAlign.Center,
