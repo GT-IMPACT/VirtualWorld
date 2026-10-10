@@ -1,10 +1,13 @@
 package space.gtimpact.virtual_world.addon.visual_prospecting.layer.ores
 
+import journeymap.client.forge.helper.ForgeHelper
 import journeymap.client.render.draw.DrawStep
 import journeymap.client.render.draw.DrawUtil
 import journeymap.client.render.map.GridRenderer
 import org.lwjgl.input.Keyboard
 import space.gtimpact.virtual_world.addon.visual_prospecting.MapSettings
+import space.gtimpact.virtual_world.extras.toTranslate
+import java.text.NumberFormat
 import kotlin.math.pow
 
 class OresDrawStep(
@@ -43,8 +46,8 @@ class OresDrawStep(
 
         if (location.remainingAmount >= 0 && location.generatedAmount >= 0) {
 
-            val percentAmount = 100 * location.remainingAmount / location.maxGeneratedSize
-            val alpha = 225 * percentAmount / 100
+            val fullness = location.remainingAmount.toDouble() / location.maxGeneratedSize.coerceAtLeast(1)
+            val alpha = (225 * fullness.coerceIn(0.0, 1.0)).toInt()
 
             DrawUtil.drawRectangle(
                 x,
@@ -56,17 +59,29 @@ class OresDrawStep(
             )
 
             if ((hasFullScreenRender || hasMinimapRender) && Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
+                val label = "virtual_world.ores.remaining_cycles".toTranslate(
+                    NumberFormat.getIntegerInstance().format(location.remainingAmount),
+                )
+                val fontRenderer = ForgeHelper.INSTANCE.getFontRenderer()
+                // JourneyMap adds 2.5 pixels of background padding on each side.
+                val labelWidth = fontRenderer.getStringWidth(label) + 5.0
+                val labelHeight = DrawUtil.getLabelHeight(fontRenderer, false).toDouble()
+                val labelScale = minOf(
+                    fontScale * 1.25.pow(gridRenderer.zoom.toDouble()),
+                    (size - 4.0 * blockPixelSize) / labelWidth,
+                    size / 3.0 / labelHeight,
+                )
                 DrawUtil.drawLabel(
-                    "${percentAmount}%",
-                    x + 7.5 * blockPixelSize,
-                    y + 7.5 * blockPixelSize,
+                    label,
+                    x + size / 2.0 - gap / 2.0,
+                    y + size / 2.0 - gap / 2.0,
                     DrawUtil.HAlign.Center,
                     DrawUtil.VAlign.Middle,
                     0x000000,
                     180,
                     0x00FFFFFF,
                     255,
-                    fontScale * 1.25.pow(gridRenderer.zoom.toDouble()),
+                    labelScale,
                     false,
                     rotation,
                 )

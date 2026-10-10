@@ -1,6 +1,7 @@
 virtual_world.prospected.ores=Вы нашли %s новых рудных месторождений и %s обновлены!
 virtual_world.prospected.fluids=Вы нашли %s новых жидкостных месторождений и %s обновлены!
 virtual_world.fluids.remaining_cycles=Осталось: %s циклов
+virtual_world.ores.remaining_cycles=%s циклов
 
 visualprospecting.button.virtualores.l0=Виртуальные Руды Слой 0
 visualprospecting.button.virtualores.l1=Виртуальные Руды Слой 1
