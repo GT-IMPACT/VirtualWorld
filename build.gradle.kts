@@ -39,14 +39,14 @@ repositories {
 }
 
 dependencies {
-    api("com.github.GTNewHorizons:CodeChickenCore:1.3.11:dev") {
-        version { strictly("1.3.11") }
-    }
-    api("com.github.GTNewHorizons:NotEnoughItems:2.6.0-GTNH:dev")
+    api("com.github.GTNewHorizons:CodeChickenCore:1.4.22:dev")
+    api("com.github.GTNewHorizons:NotEnoughItems:2.8.158-GTNH:dev")
     api("space.impact:Packet-network:1.1.8.dirty:dev")
     api("space.impact:VisualProspecting:1.3.2:dev")
 
+
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:${libs.versions.kotlin.get()}")
 
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.7.3")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.7.3:dev")
+    runtimeOnlyNonPublishable(modUtils.deobfuscate("curse.maven:journeymap-32274:4500659"))
 }
