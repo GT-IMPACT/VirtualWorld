@@ -5,7 +5,13 @@ import codechicken.nei.PositionedStack
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 
-class FixedPositionedStack @JvmOverloads constructor(stack: ItemStack?, x: Int, y: Int, val chance: Int = 0) : PositionedStack(stack, x, y, true) {
+class FixedPositionedStack @JvmOverloads constructor(
+    stack: ItemStack?,
+    x: Int,
+    y: Int,
+    @get:JvmName("getRecipeChance")
+    val chance: Int = 0
+) : PositionedStack(stack, x, y, true) {
     private var perMutated: Boolean = false
 
     override fun generatePermutations() {
